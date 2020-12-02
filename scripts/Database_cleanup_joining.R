@@ -3,7 +3,7 @@ graphics.off()
 rm(list=ls())
 
 ## Pacotes
-packs<-c("vegan","ggplot2","viridis","effects","RColorBrewer","xlsx","psych","reshape2","tidyr")
+packs<-c("gridExtra","vegan","ggplot2","viridis","effects","RColorBrewer","xlsx","psych","reshape2","tidyr")
 lapply(packs,require,character.only=T)
 
 db_mh<-read.xlsx("D:/Work/FCUL/Doutoramento/Capitulos/Exclosure_experiments/Data/Cores_ID/DBMH/Cores_DB_all_20201105.xlsx",1)
@@ -110,7 +110,7 @@ DB12$low_taxa<-as.character(DB12$low_taxa)
 length(unique(DB12$coreID))
 
 DB2<-complete(DB12,low_taxa,nesting(year,month,site,coreID),fill = list(numb=0))
-write.table(DB2,"data_out/db/Total_complete_db.csv",row.names=F,sep=";")
+#write.table(DB2,"data_out/db/Total_complete_db.csv",row.names=F,sep=";")
 
 
 
@@ -128,7 +128,7 @@ unique(DB2$low_taxa)
 DB3<-merge(DB2,DB132,by="low_taxa", all.x=T)
 DB4<-merge(DB3,DB131,by="low_taxa", all.x=T)
 DB5<-DB4[-which(DB4$low_taxa=="empty"),] # too remove taxa lines of empty for each core, but also repeated for T and B 
-write.table(DB5,"data_out/db/Final_DB_complete_20201123.csv",row.names=F,sep=";")
+#write.table(DB5,"data_out/db/Final_DB_complete_20201123.csv",row.names=F,sep=";")
 
 DB6<-aggregate(DB5$numb,by=list(year=DB5$year,month=DB5$month,site=DB5$site,coreID=DB5$coreID,class1=DB5$class1,
                                 family=DB5$family,low_taxa=DB5$low_taxa),FUN=sum)
@@ -147,44 +147,58 @@ table(is.na(DB6))
 
 #### Calcular densidades
 
-DB6$dens<-ifelse(DB6$site=="AD",DB6$numb/0.0113,DB6$numb/0.0082)
+DB6$dens<-ifelse(DB6$site=="AD",DB6$numb/0.0113,DB6$numb/0.00785)
 
-write.table(DB6,"data_out/db/DB6.csv",row.names=F,sep=";")
+#write.table(DB6,"data_out/db/DB6.csv",row.names=F,sep=";")
+
+### include column with cut for most abundant low taxa
+DB7<-aggregate(DB6$dens,by=list(family=DB6$family),FUN=mean)
+DB7$cut<-ifelse(DB7$x>=10,"Y","N")
+DB8<-merge(DB6,DB7,by="family",all.x=T)
+
+##Order site by island
+DB8$site1<-factor(DB8$site,levels=c("AD","BI","BR","E","A","AB"))
+
 
 ####plots de densidade total (todos os sitios todos os meses)
 
-ggplot(DB6, aes(x=dens,y=reorder(low_taxa, dens))) +
+ggplot(DB8[DB8$cut=="Y",],aes(x=dens,y=reorder(low_taxa, dens),col=class1)) +
   #geom_point(size=3)+
-  stat_summary()+
+  stat_summary(size=1)+
   theme_bw() +
-  labs(x="Density (ind.m-2)",y="Low taxa (ordered by total density)")+
-  theme(axis.text.x = element_text(size=16),
-        axis.text.y = element_text(size=8),
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"))
-
-ggplot(DB6, aes(x=dens,y=reorder(family, dens))) +
-  #geom_point(size=3)+
-  stat_summary()+
-  theme_bw() +
-  labs(x="Density (ind.m-2)",y="Family (ordered by total density)")+
+  labs(x="Mean density (ind.m-2)",y="Lower tax.level (taxa above 10 ind.m-2)")+
   theme(axis.text.x = element_text(size=16),
         axis.text.y = element_text(size=12),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
-        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"))
+        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"),
+        axis.title = element_text(size=16,face="bold"))+
+  scale_colour_brewer(palette="Dark2")
 
-ggplot(DB6, aes(x=dens,y=reorder(class1, dens))) +
+ggplot(DB8[DB8$cut=="Y",],aes(x=dens,y=reorder(family, dens),col=class1)) +
   #geom_point(size=3)+
-  stat_summary()+
+  stat_summary(size=1)+
   theme_bw() +
-  labs(x="Density (ind.m-2)",y="Class (ordered by total density)")+
+  labs(x="Mean density (ind.m-2)",y="Family (families above 10 ind.m-2)")+
   theme(axis.text.x = element_text(size=16),
         axis.text.y = element_text(size=12),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
-        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"))
+        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"),
+        axis.title = element_text(size=16,face="bold"))+
+  scale_colour_brewer(palette="Dark2")
+
+ggplot(DB8,aes(x=dens,y=reorder(class1, dens))) +
+  #geom_point(size=3)+
+  stat_summary(size=1)+
+  theme_bw() +
+  labs(x="Mean density (ind.m-2)",y="(Sub)class")+
+  theme(axis.text.x = element_text(size=16),
+        axis.text.y = element_text(size=12),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"),
+        axis.title = element_text(size=16,face="bold"))
 
 #### Plots por sítio
 
@@ -222,42 +236,61 @@ ggplot(DB6, aes(x=dens,y=reorder(class1, dens),fill=site)) +
 
 ### Barras normais
 
-ggplot(DB6, aes(x=dens,y=reorder(low_taxa, dens),fill=site)) +
+ggplot(DB8[DB8$cut=="Y",], aes(x=dens,y=reorder(low_taxa, dens),fill=site1)) +
   stat_summary(geom="bar",size=1)+
-  scale_fill_brewer(palette="Set1")+
+  scale_fill_manual(values=c("red","steelblue2","royalblue3","darkblue","limegreen","darkgreen"))+
   theme_bw() +
-  labs(x="Density (ind.m-2)",y="Low taxa (ordered by total density)")+
+  labs(x="Mean density (ind.m-2)",y="Lower tax.level (families above 10 ind.m-2)")+
   theme(axis.text.x = element_text(size=16),
         axis.text.y = element_text(size=12),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
-        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"))
-#stat_summary()
+        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"),
+        axis.title = element_text(size=16,face="bold"))
 
+XX<-aggregate(DB8$dens,by=list(family=DB8$family,site1=DB8$site1),FUN=mean)
+colnames(XX)[3]<-"dens"
+XX1<-merge(XX,DB7,by="family", all.x=T)
 
-ggplot(DB6, aes(x=dens,y=reorder(family,dens),fill=site)) +
-  stat_summary(fun.y=mean,geom="bar",size=1)+
-  scale_fill_brewer(palette="Set1")+
+XXX<-dcast(data=XX,family~site1)
+
+ggplot(XX1[XX1$cut=="Y",],aes(x=dens,y=reorder(family, dens),fill=site1)) +
+  #stat_summary(geom="bar",size=1)+
+  geom_bar(stat="identity")+
+  scale_fill_manual(values=c("red","steelblue2","royalblue3","darkblue","limegreen","darkgreen"))+
   theme_bw() +
-  labs(x="Density (ind.m-2)",y="Family (ordered by total density)")+
+  labs(x="Mean density (ind.m-2)",y="Family (families above 10 ind.m-2)")+
   theme(axis.text.x = element_text(size=16),
         axis.text.y = element_text(size=12),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
-        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"))
-#stat_summary()
+        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"),
+        axis.title = element_text(size=16,face="bold"))
 
-ggplot(DB6, aes(y=numb,x=reorder(class1,-dens),fill=site)) +
-  stat_summary(fun.y=mean,geom="bar",size=1, position="dodge")+
-  stat_summary(fun.data=mean_se,position=position_dodge(0.95),geom="errorbar")+
-  scale_fill_brewer(palette="Set1")+
+
+ggplot(DB8[DB8$cut=="Y",], aes(x=dens,y=reorder(family, dens),col=site1)) +
+  stat_summary(geom="pointrange",size=1)+
+  scale_fill_manual(values=c("red","steelblue2","royalblue3","darkblue","limegreen","darkgreen"))+
   theme_bw() +
-  labs(y="Density (ind.m-2)",x="Class (ordered by total density)")+
+  labs(x="Mean density (ind.m-2)",y="Family (families above 10 ind.m-2)")+
   theme(axis.text.x = element_text(size=16),
         axis.text.y = element_text(size=12),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
-        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"))
+        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"),
+        axis.title = element_text(size=16,face="bold"))
+
+ggplot(DB8,aes(y=dens,x=reorder(class1, -dens),fill=site1)) +
+  stat_summary(geom="bar",size=1,position="dodge")+
+  scale_fill_manual(values=c("red","steelblue2","royalblue3","darkblue","limegreen","darkgreen"))+
+  theme_bw() +
+  labs(x="Mean density (ind.m-2)",y="(Sub)class")+
+  theme(axis.text.x = element_text(size=16),
+        axis.text.y = element_text(size=12),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"),
+        axis.title = element_text(size=16,face="bold"))
 
 
 ### 
@@ -288,48 +321,78 @@ ggplot(DB6, aes(x=dens,y=reorder(class1, dens)))+
 
 #### Temporal
 
-DB6$time<-paste(DB6$year,DB6$month,sep="")
-DB6$time1<-factor(DB6$time, levels=c("20181","20182","20183","201810","201811","201812","20191","20193","20194","201910","20201","20202","20203"))
-DB6$time2<-ifelse(DB6$time1=="20181","01/01/2018",ifelse(DB6$time1=="20182","01/02/2018",ifelse(DB6$time1=="20183","01/03/2018",
-                  ifelse(DB6$time1=="201810","01/10/2018",ifelse(DB6$time1=="201811","01/11/2018",ifelse(DB6$time1=="201812","01/12/2018",
-                  ifelse(DB6$time1=="20191","01/01/2019",ifelse(DB6$time1=="20193","01/03/2019",ifelse(DB6$time1=="20194","01/04/2019",
-                  ifelse(DB6$time1=="201910","01/10/2019",ifelse(DB6$time1=="20201","01/01/2020",ifelse(DB6$time1=="20202","01/02/2020",
-                  ifelse(DB6$time1=="20203","01/03/2020",NA)))))))))))))
-
-DB6$time3<-as.POSIXct(DB6$time2,format="%d/%m/%Y",tz="GMT")
-
-DB6$month1<-factor(DB6$month, levels=c("10","11","12","1","2","3","4"))
-
-class(DB6$time1)
-unique(DB6$time1)
 
 
+DB8$time<-paste(DB8$year,DB8$month,sep="")
+DB8$time1<-factor(DB8$time, levels=c("20181","20182","20183","201810","201811","201812","20191","20193","20194","201910","20201","20202","20203"))
+DB8$time2<-ifelse(DB8$time1=="20181","01/01/2018",ifelse(DB8$time1=="20182","01/02/2018",ifelse(DB8$time1=="20183","01/03/2018",
+                  ifelse(DB8$time1=="201810","01/10/2018",ifelse(DB8$time1=="201811","01/11/2018",ifelse(DB8$time1=="201812","01/12/2018",
+                  ifelse(DB8$time1=="20191","01/01/2019",ifelse(DB8$time1=="20193","01/03/2019",ifelse(DB8$time1=="20194","01/04/2019",
+                  ifelse(DB8$time1=="201910","01/10/2019",ifelse(DB8$time1=="20201","01/01/2020",ifelse(DB8$time1=="20202","01/02/2020",
+                  ifelse(DB8$time1=="20203","01/03/2020",NA)))))))))))))
 
-ggplot(DB6, aes(x=dens,y=reorder(class1, dens))) +
+DB8$time3<-as.POSIXct(DB8$time2,format="%d/%m/%Y",tz="GMT")
+
+DB8$month1<-factor(DB8$month, levels=c("10","11","12","1","2","3","4"))
+
+class(DB8$time3)
+unique(DB8$time3)
+
+DATES<-c("JAN18","FEB18","MAR18","OCT18","NOV18","DEC18","JAN19","MAR19","APR19","OCT19","JAN20","FEB20","MAR20")
+names(DATES)<-levels(factor(unique(DB8$time3)))
+SITES<-c("Adonga","Bijante","Bruce","Escadinhas","Anrumai","Abu")
+names(SITES)<-levels(factor(unique(DB8$site1)))
+#coll<-c("red","steelblue2","royalblue3","darkblue","limegreen","darkgreen")
+
+#All dates
+ggplot(DB8,aes(x=dens,y=reorder(class1, dens),col=class1)) +
   #geom_point(size=3)+
   stat_summary(size=1)+
-  facet_grid(factor(time1) ~ site,scales="free")+
+  facet_grid(time3 ~ site1,scales="free",labeller = labeller(time3=DATES,site1=SITES))+
   theme_bw() +
   labs(x="Density (ind.m-2)",y="Class (ordered by total density)")+
   theme(axis.text.x = element_text(size=16),
-        axis.text.y = element_text(size=13),
+        axis.text.y = element_text(size=12),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
-        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"))
+        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"))+
+  scale_colour_brewer(palette="Dark2")
 
 
-unique(DB6$low_taxa)
+#Merging months
+
+DATES1<-c("OCT","NOV","DEZ","JAN","FEB","MAR","APR")
+names(DATES1)<-levels(factor(unique(DB8$month1)))
+
+ggplot(DB8, aes(x=dens,y=reorder(class1, dens),col=class1)) +
+  #geom_point(size=3)+
+  stat_summary(size=1)+
+  facet_grid(month1 ~ site1,scales="free",labeller = labeller(month1=DATES1,site1=SITES))+
+  theme_bw() +
+  labs(x="Density (ind.m-2)",y="Class (ordered by total density)")+
+  theme(axis.text.x = element_text(size=16),
+        axis.text.y = element_text(size=12),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"))+
+  scale_colour_brewer(palette="Dark2")
 
 
-#### More temporal graphs
+
+#### More detailed temporal graphs
+### per site vs class
 
 
-ggplot(DB6,aes(x=month1,y=dens,col=site,group=site))+
-  stat_summary(geom="pointrange",position=position_dodge(width=0.6),size=0.7)+
-  stat_summary(geom="line")+
-  facet_wrap(.~class1,scales="free")+
+ggplot(DB8,aes(x=month1,y=dens,col=class1,group=class1))+
+  stat_summary(geom="pointrange",position=position_dodge(width=0.3),size=0.7)+
+  stat_summary(geom="line",lwd=1.5,alpha=0.50)+
+  facet_wrap(.~site1,scales="free",labeller = labeller(site1=SITES))+
   theme_bw()+
-  labs(x="month (aggregation of all years",y="mean of density (ind.m-2)")
+  labs(x="Month (aggregation of all years)",y="Mean density (ind.m-2)")+
+  theme(axis.text.x = element_text(size=16),axis.text.y = element_text(size=12),axis.title = element_text(size=15,face="bold"))+
+  theme(strip.text = element_text(face="bold", size=rel(1.5)))
+
+
 
 
 ggplot(DB6,aes(x=time3,y=dens,col=site,group=site))+
@@ -342,8 +405,7 @@ ggplot(DB6,aes(x=time3,y=dens,col=site,group=site))+
   scale_x_datetime(breaks=c(unique(DB6$time3)))
 
 
-DB7<-aggregate(DB6$dens,by=list(family=DB6$family),FUN=mean)
-DB7$cut<-ifelse(DB7$x>=20,"Y","N")
+###Aggregates to check values of mean densities per site 
 
 DB77<-aggregate(DB6$dens,by=list(low_taxa=DB6$low_taxa,site=DB6$site),FUN=mean)
 DB777<-dcast(data=DB77,low_taxa~site)
@@ -352,12 +414,10 @@ DB7777<-aggregate(DB6$dens,by=list(low_taxa=DB6$low_taxa),FUN=mean)
 
 DB_exp<-merge(DB777,DB7777,by="low_taxa")
 
-write.table(DB_exp,"data_out/db/DB_exp.csv",sep=";",row.names=F)
+#write.table(DB_exp,"data_out/db/DB_exp.csv",sep=";",row.names=F)
 
-DB8<-merge(DB6,DB7,by="family",all.x=T)
 
-### Selection of family
-DATES<-c("JAN18","FEB18","MAR18","OCT18","NOV18","DEC18","JAN19","MAR19","APR19","OCT19","JAN20","FEB20","MAR20")
+
 
 
 ggplot(DB8[which(DB8$cut=="Y"),],aes(x=month1,y=dens,col=site,group=site))+
