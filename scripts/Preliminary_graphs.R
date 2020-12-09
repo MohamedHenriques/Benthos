@@ -6,13 +6,16 @@ rm(list=ls())
 packs<-c("gridExtra","vegan","ggplot2","viridis","effects","RColorBrewer","xlsx","psych","reshape2","tidyr")
 lapply(packs,require,character.only=T)
 
-DB6<-read.table("data_out/db/DB6.csv",header=T,sep=";") ### created in script called Database_cleanup_joining
+DB66<-read.table("data_out/db/Final_DB_lowtaxa_density_polyexcl_20201208.csv",header=T,sep=";") ### created in script called Database_cleanup_joining
+DB67<-read.table("data_out/db/Final_DB_family_density_polyexcl_20201208.csv",header=T,sep=";") ### created in script called Database_cleanup_joining
+DB68<-read.table("data_out/db/Final_DB_class1_density_polyexcl_20201208.csv",header=T,sep=";") ### created in script called Database_cleanup_joining
 
 
-### include column with cut for most abundant low taxa
-DB7<-aggregate(DB6$dens,by=list(family=DB6$family),FUN=mean)
+### include column with cut for most abundant families
+DB7<-aggregate(DB67$dens,by=list(family=DB67$family),FUN=mean)
+
 DB7$cut<-ifelse(DB7$x>=10,"Y","N")
-DB8<-merge(DB6,DB7,by="family",all.x=T)
+DB8<-merge(DB67,DB7,by="family",all.x=T)
 
 ##Order site by island
 DB8$site1<-factor(DB8$site,levels=c("AD","BI","BR","E","A","AB"))
@@ -46,7 +49,7 @@ ggplot(DB8[DB8$cut=="Y",],aes(x=dens,y=reorder(family, dens),col=class1)) +
         axis.title = element_text(size=16,face="bold"))+
   scale_colour_brewer(palette="Dark2")
 
-ggplot(DB8,aes(x=dens,y=reorder(class1, dens))) +
+ggplot(DB68,aes(x=dens,y=reorder(class1, dens))) +
   #geom_point(size=3)+
   stat_summary(size=1)+
   theme_bw() +
@@ -61,7 +64,7 @@ ggplot(DB8,aes(x=dens,y=reorder(class1, dens))) +
 #### Plots por sítio
 
 ###Barras percentuais
-ggplot(DB6, aes(x=dens,y=reorder(low_taxa, dens),fill=site)) +
+ggplot(DB66, aes(x=dens,y=reorder(low_taxa, dens),fill=site)) +
   geom_bar(stat="identity",position="fill")+
   scale_fill_brewer(palette="Set1")+
   theme_bw()+
@@ -72,7 +75,7 @@ ggplot(DB6, aes(x=dens,y=reorder(low_taxa, dens),fill=site)) +
 #stat_summary()
 
 
-ggplot(DB6, aes(x=dens,y=reorder(family, dens),fill=site)) +
+ggplot(DB67, aes(x=dens,y=reorder(family, dens),fill=site)) +
   geom_bar(stat="identity",position="fill")+
   scale_fill_brewer(palette="Set1")+
   theme_bw()+
@@ -82,7 +85,7 @@ ggplot(DB6, aes(x=dens,y=reorder(family, dens),fill=site)) +
         axis.title = element_text(size=16))
 #stat_summary()
 
-ggplot(DB6, aes(x=dens,y=reorder(class1, dens),fill=site)) +
+ggplot(DB68, aes(x=dens,y=reorder(class1, dens),fill=site)) +
   geom_bar(stat="identity",position="fill")+
   scale_fill_brewer(palette="Set1")+
   theme_bw()+
@@ -106,11 +109,19 @@ ggplot(DB8[DB8$cut=="Y",], aes(x=dens,y=reorder(low_taxa, dens),fill=site1)) +
         panel.grid.major.y = element_line(colour="grey60", linetype="dashed"),
         axis.title = element_text(size=16,face="bold"))
 
-XX<-aggregate(DB8$dens,by=list(family=DB8$family,site1=DB8$site1),FUN=mean)
+XX<-aggregate(DB67$dens,by=list(family=DB67$family,site1=DB67$site),FUN=mean)
 colnames(XX)[3]<-"dens"
 XX1<-merge(XX,DB7,by="family", all.x=T)
 
 XXX<-dcast(data=XX,family~site1)
+
+YY<-aggregate(DB66$dens,by=list(low_taxa=DB66$low_taxa,site1=DB66$site),FUN=mean)
+colnames(YY)[3]<-"dens"
+
+DB77<-aggregate(DB61$dens,by=list(low_taxa=DB61$low_taxa),FUN=mean)
+YY1<-merge(YY,DB66,by="low_taxa", all.x=T)
+
+YYY<-dcast(data=YY,low_taxa~site1)
 
 ggplot(XX1[XX1$cut=="Y",],aes(x=dens,y=reorder(family, dens),fill=site1)) +
   #stat_summary(geom="bar",size=1)+
@@ -182,12 +193,12 @@ ggplot(DB6, aes(x=dens,y=reorder(class1, dens)))+
 
 
 DB8$time<-paste(DB8$year,DB8$month,sep="")
-DB8$time1<-factor(DB8$time, levels=c("20181","20182","20183","201810","201811","201812","20191","20193","20194","201910","20201","20202","20203"))
+DB8$time1<-factor(DB8$time, levels=c("20181","20182","20183","201810","201811","201812","20191","20192","20193","20194","201910","20201","20202","20203"))
 DB8$time2<-ifelse(DB8$time1=="20181","01/01/2018",ifelse(DB8$time1=="20182","01/02/2018",ifelse(DB8$time1=="20183","01/03/2018",
-                                                                                                ifelse(DB8$time1=="201810","01/10/2018",ifelse(DB8$time1=="201811","01/11/2018",ifelse(DB8$time1=="201812","01/12/2018",
-                                                                                                                                                                                       ifelse(DB8$time1=="20191","01/01/2019",ifelse(DB8$time1=="20193","01/03/2019",ifelse(DB8$time1=="20194","01/04/2019",
-                                                                                                                                                                                                                                                                            ifelse(DB8$time1=="201910","01/10/2019",ifelse(DB8$time1=="20201","01/01/2020",ifelse(DB8$time1=="20202","01/02/2020",
-                                                                                                                                                                                                                                                                                                                                                                  ifelse(DB8$time1=="20203","01/03/2020",NA)))))))))))))
+                ifelse(DB8$time1=="201810","01/10/2018",ifelse(DB8$time1=="201811","01/11/2018",ifelse(DB8$time1=="201812","01/12/2018",
+                ifelse(DB8$time1=="20191","01/01/2019",ifelse(DB8$time1=="20192","01/02/2019",ifelse(DB8$time1=="20193","01/03/2019",ifelse(DB8$time1=="20194","01/04/2019",
+                ifelse(DB8$time1=="201910","01/10/2019",ifelse(DB8$time1=="20201","01/01/2020",ifelse(DB8$time1=="20202","01/02/2020",
+                ifelse(DB8$time1=="20203","01/03/2020",NA))))))))))))))
 
 DB8$time3<-as.POSIXct(DB8$time2,format="%d/%m/%Y",tz="GMT")
 
@@ -196,7 +207,7 @@ DB8$month1<-factor(DB8$month, levels=c("10","11","12","1","2","3","4"))
 class(DB8$time3)
 unique(DB8$time3)
 
-DATES<-c("JAN18","FEB18","MAR18","OCT18","NOV18","DEC18","JAN19","MAR19","APR19","OCT19","JAN20","FEB20","MAR20")
+DATES<-c("JAN18","FEB18","MAR18","OCT18","NOV18","DEC18","JAN19","FEB19","MAR19","APR19","OCT19","JAN20","FEB20","MAR20")
 names(DATES)<-levels(factor(unique(DB8$time3)))
 SITES<-c("Adonga","Bijante","Bruce","Escadinhas","Anrumai","Abu")
 names(SITES)<-levels(factor(unique(DB8$site1)))
@@ -253,7 +264,7 @@ ggplot(DB8,aes(x=month1,y=dens,col=class1,group=class1))+
 
 
 
-ggplot(DB6,aes(x=time3,y=dens,col=site,group=site))+
+ggplot(DB8,aes(x=time3,y=dens,col=site,group=site))+
   stat_summary(geom="pointrange",position=position_dodge(width=0.6),size=0.7)+
   stat_summary(geom="line")+
   facet_wrap(.~class1,scales="free")+
