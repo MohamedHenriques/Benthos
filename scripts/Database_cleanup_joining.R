@@ -186,7 +186,7 @@ length(unique(DB66$coreID[DB66$class1=="Bivalvia"]))
 length(unique(DB66$coreID[DB66$class1=="Gastropoda"]))
 
 #### Calcular densidades
-DB66$dens<-ifelse(DB66$site=="AD",DB66$numb/0.0113,DB66$numb/0.00785)
+DB66$dens<-ifelse(DB66$site=="AD",DB66$numb/0.00866,DB66$numb/0.00817)
 
 #BD low_taxa
 write.table(DB66,"data_out/db/Final_DB_lowtaxa_density_polyexcl_20201208.csv",row.names=F,sep=";")

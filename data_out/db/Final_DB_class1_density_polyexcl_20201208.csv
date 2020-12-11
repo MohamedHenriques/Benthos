@@ -414,7 +414,7 @@
 "Bubaque";2019;1;"BI";"C6BI2";"Bivalvia";12;1528.66242038217
 "Bubaque";2019;1;"BI";"C6BI3";"Bivalvia";7;891.71974522293
 "Bubaque";2019;1;"BI";"C6BI4";"Bivalvia";5;636.942675159236
-"Bubaque";2019;1;"BI";"C6BI5";"Bivalvia";19;2420.3821656051
+"Bubaque";2019;1;"BI";"C6BI5";"Bivalvia";20;2547.77070063694
 "Bubaque";2019;1;"BI";"C6BI6";"Bivalvia";3;382.165605095541
 "Bubaque";2019;1;"BI";"C6BI7";"Bivalvia";1;127.388535031847
 "Bubaque";2019;1;"BI";"C6BI8";"Bivalvia";0;0
@@ -1525,7 +1525,7 @@
 "Bubaque";2018;11;"BR";"C4BR6";"Malacostraca";1;127.388535031847
 "Bubaque";2018;11;"BR";"C4BR7";"Malacostraca";2;254.777070063694
 "Bubaque";2018;11;"BR";"C4BR8";"Malacostraca";1;127.388535031847
-"Bubaque";2018;11;"BR";"C4BR9";"Malacostraca";0;0
+"Bubaque";2018;11;"BR";"C4BR9";"Malacostraca";1;127.388535031847
 "Bubaque";2018;11;"E";"C4E1";"Malacostraca";6;764.331210191083
 "Bubaque";2018;11;"E";"C4E10";"Malacostraca";0;0
 "Bubaque";2018;11;"E";"C4E11";"Malacostraca";1;127.388535031847
@@ -1783,7 +1783,7 @@
 "Bubaque";2018;2;"BR";"CBR1";"Malacostraca";0;0
 "Bubaque";2018;2;"BR";"CBR10";"Malacostraca";6;764.331210191083
 "Bubaque";2018;2;"BR";"CBR11";"Malacostraca";15;1910.82802547771
-"Bubaque";2018;2;"BR";"CBR12";"Malacostraca";12;1528.66242038217
+"Bubaque";2018;2;"BR";"CBR12";"Malacostraca";13;1656.05095541401
 "Bubaque";2018;2;"BR";"CBR13";"Malacostraca";2;254.777070063694
 "Bubaque";2018;2;"BR";"CBR14";"Malacostraca";0;0
 "Bubaque";2018;2;"BR";"CBR15";"Malacostraca";0;0
@@ -2136,7 +2136,7 @@
 "Bubaque";2018;11;"BR";"C4BR6";"Other";0;0
 "Bubaque";2018;11;"BR";"C4BR7";"Other";0;0
 "Bubaque";2018;11;"BR";"C4BR8";"Other";1;127.388535031847
-"Bubaque";2018;11;"BR";"C4BR9";"Other";1;127.388535031847
+"Bubaque";2018;11;"BR";"C4BR9";"Other";0;0
 "Bubaque";2018;11;"E";"C4E1";"Other";0;0
 "Bubaque";2018;11;"E";"C4E10";"Other";0;0
 "Bubaque";2018;11;"E";"C4E11";"Other";0;0
@@ -2247,7 +2247,7 @@
 "Bubaque";2019;1;"BI";"C6BI2";"Other";0;0
 "Bubaque";2019;1;"BI";"C6BI3";"Other";1;127.388535031847
 "Bubaque";2019;1;"BI";"C6BI4";"Other";0;0
-"Bubaque";2019;1;"BI";"C6BI5";"Other";3;382.165605095541
+"Bubaque";2019;1;"BI";"C6BI5";"Other";2;254.777070063694
 "Bubaque";2019;1;"BI";"C6BI6";"Other";1;127.388535031847
 "Bubaque";2019;1;"BI";"C6BI7";"Other";3;382.165605095541
 "Bubaque";2019;1;"BI";"C6BI8";"Other";0;0
@@ -2394,7 +2394,7 @@
 "Bubaque";2018;2;"BR";"CBR1";"Other";0;0
 "Bubaque";2018;2;"BR";"CBR10";"Other";3;382.165605095541
 "Bubaque";2018;2;"BR";"CBR11";"Other";0;0
-"Bubaque";2018;2;"BR";"CBR12";"Other";1;127.388535031847
+"Bubaque";2018;2;"BR";"CBR12";"Other";0;0
 "Bubaque";2018;2;"BR";"CBR13";"Other";0;0
 "Bubaque";2018;2;"BR";"CBR14";"Other";0;0
 "Bubaque";2018;2;"BR";"CBR15";"Other";0;0
