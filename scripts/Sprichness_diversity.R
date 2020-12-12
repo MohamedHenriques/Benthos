@@ -45,7 +45,7 @@ tot<-data.frame(site=site1,mean_num_ind=apply(test,2,mean),sd_num_ind=apply(test
   
 
 ############## Calcular diversidade Shannon-Wienner limitando o bootstrap a 71 cores e/ou 800 individuos por site
-
+########### Diversidade per site #################
 dd<-aggregate(db1$numb,by=list(site=db1$site,coreID=db1$coreID,low_taxa=db1$low_taxa),FUN=sum)
 dd1<-dcast(dd,site+coreID~low_taxa)
 
@@ -98,4 +98,90 @@ for (x in 1:length(site1))
   d1[x,2]<-round(mean(rr),2)
   d1[x,3]<-round(sd(rr),2)
 }
+
+
+
+
+
+### Checking differences in the mean total numb ind in each island based on boostrapping 108 samples 1000 times
+i1<-aggregate(db1$numb,by=list(island=db1$island,coreID=db1$coreID,low_taxa=db1$low_taxa),FUN=sum)
+i2<-dcast(i1,island+coreID~low_taxa)
+
+
+set.seed(1)
+r=1000
+test<-array(NA,c(r,length(unique(i2$island))))
+island<-as.character(unique(i2$island))
+y=c("Orango","Formosa","Bubaque")
+island1<-island[order(match(island,y))]
+colnames(test)<-island1
+
+for (i in 1:length(island1)) {
+  print(island1[i])
+  i3<-i2[which(i2$island==island1[i]),]
+  for (j in 1:r) {
+    s<-i3[sample(1:nrow(i3),108,replace=T),]
+    s1<-apply(s[,-c(1:2)],2,sum)
+    test[j,i]<-sum(s1)
+  }
+}
+tot<-data.frame(island=island1,mean_num_ind=apply(test,2,mean),sd_num_ind=apply(test,2,sd),min_num_ind=apply(test,2,min),max_num_ind=apply(test,2,max))
+
+
+
+########### Diversidade per island #################
+df<-aggregate(db1$numb,by=list(island=db1$island,coreID=db1$coreID,low_taxa=db1$low_taxa),FUN=sum)
+df1<-dcast(df,island+coreID~low_taxa)
+table(df1$island)
+
+R=1000
+set.seed(3)
+island<-as.character(unique(df1$island))
+y=c("Orango","Formosa","Bubaque")
+island1<-site[order(match(island,y))]
+g1<-array(NA, c(length(island1), 5))
+colnames(g1)<-c("island","Mean_Shannon-Wiener","SD","N_cores","N_ind")
+
+cores<-108
+dens1<-function(x){x/0.00866}
+dens2<-function(x){x/0.00817}
+
+for (x in 1:length(island1))
+{
+  print(island1[x])
+  g1[x,1]<-island1[x]
+  tt<-df1[df1$island==island1[x],-(1:2)]
+  tt1<-tt[sample(1:nrow(tt), 1, replace=T),]
+  lim<-sum(tt1)
+  for (i in 2:cores) {
+    print(paste("starting core",i))
+    if(lim<=3000){
+      tt1[i,]<-tt[sample(1:nrow(tt), 1, replace=T),]
+      lim<-sum(tt1)
+    } else{
+      print(paste("sampling in",island1[x],"reached",lim,"ind at core",i))
+    }
+  }
+  g1[x,4]<-nrow(tt1)
+  g1[x,5]<-lim
+  print(paste("starting diversity calculations in",island1[x]))
+  ### calculating density
+  if(island1[x]=="Orango"){
+    tt2<-sapply(tt1,dens1)
+  } else {
+    tt2<-sapply(tt1,dens2)
+  }
+  rr<-array(NA,R)
+  for (y in 1:R)
+  {
+    sel<-sample(1:nrow(tt2), nrow(tt2), replace=T)
+    f<-apply(tt2[sel,], 2, mean)
+    f1<-f[-c(which(f==0))]
+    rr[y]<-sum(f1/sum(f1)*log(f1/sum(f1)))*-1
+  }
+  g1[x,2]<-round(mean(rr),2)
+  g1[x,3]<-round(sd(rr),2)
+}
+
+
 
