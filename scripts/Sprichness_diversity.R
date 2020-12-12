@@ -52,13 +52,13 @@ tot<-data.frame(site=site1,mean_num_ind=apply(test,2,mean),sd_num_ind=apply(test
 dd<-aggregate(db1$numb,by=list(site=db1$site,coreID=db1$coreID,low_taxa=db1$low_taxa),FUN=sum)
 dd1<-dcast(dd,site+coreID~low_taxa)
 
-
 R=1000
 set.seed(0)
 site<-as.character(unique(dd1$site))
 y=c("AB","A","E","BI","BR","AD")
 site1<-site[order(match(site,y))]
-d1<-array(NA, c(length(site1), 3))
+d1<-array(NA, c(length(site1), 5))
+colnames(d1)<-c("site","Mean_Shannon-Wiener","SD","N_cores","N_ind")
 
 cores<-71
 sum(tt1)
@@ -74,38 +74,34 @@ for (x in 1:length(site1))
   lim<-sum(tt1)
   for (i in 2:cores) {
     print(paste("starting core",i))
-    if(lim<=600){
+    if(lim<=800){
     tt1[i,]<-tt[sample(1:nrow(tt), 1, replace=T),]
-    lim<-lim+sum(tt1)
+    lim<-sum(tt1)
     } else{
     print(paste("sampling in",site1[x],"reached",lim,"ind at core",i))
     }
-    
   }
+  d1[x,4]<-nrow(tt1)
+  d1[x,5]<-lim
   print(paste("starting diversity calculations in",site1[x]))
-  
   ### calculating density
   if(site1[x]=="AD"){
     tt2<-sapply(tt1,dens1)
   } else {
     tt2<-sapply(tt1,dens2)
   }
-  
   rr<-array(NA,R)
-  
   for (y in 1:R)
   {
     sel<-sample(1:nrow(tt2), nrow(tt2), replace=T)
     f<-apply(tt2[sel,], 2, mean)
-    sel1<-which(f==0)
-    f1<-f[-sel1]
+    f1<-f[-c(which(f==0))]
     rr[y]<-sum(f1/sum(f1)*log(f1/sum(f1)))*-1
   }
-  d1[x,2]<-mean(rr)
-  d1[x,3]<-sd(rr)
+  d1[x,2]<-round(mean(rr),2)
+  d1[x,3]<-round(sd(rr),2)
 }
 
-colnames(d1)<-c("site","Mean_Shannon-Wiener","SD")
 
 
 
