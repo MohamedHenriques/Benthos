@@ -17,9 +17,6 @@ unique(db$low_taxa)
 db1<-db[-which(db$year==2020),]
 
 
-### riqueza específica por sitio. Calcular a partir da densidade, calculando a média em vez de a soma, da densidade de cada taxa para obter
-### a abundancia geral de 
-
 
 ###############################################################################################################################
 ### Checking differences in the mean total numb ind in each site based on boostrapping 71 samples 1000 times
@@ -28,7 +25,7 @@ t2<-dcast(t1,site+coreID~low_taxa)
 
 
 set.seed(1)
-r=10000
+r=1000
 test<-array(NA,c(r,length(unique(t2$site))))
 site<-as.character(unique(t2$site))
 y=c("AB","A","E","BI","BR","AD")
@@ -47,7 +44,7 @@ for (i in 1:length(site1)) {
 tot<-data.frame(site=site1,mean_num_ind=apply(test,2,mean),sd_num_ind=apply(test,2,sd),min_num_ind=apply(test,2,min),max_num_ind=apply(test,2,max))
   
 
-############## Com correccao pelo n?mero de amostras e numero de individuos
+############## Calcular diversidade Shannon-Wienner limitando o bootstrap a 71 cores e/ou 800 individuos por site
 
 dd<-aggregate(db1$numb,by=list(site=db1$site,coreID=db1$coreID,low_taxa=db1$low_taxa),FUN=sum)
 dd1<-dcast(dd,site+coreID~low_taxa)
@@ -102,67 +99,3 @@ for (x in 1:length(site1))
   d1[x,3]<-round(sd(rr),2)
 }
 
-
-
-
-
-
-###########Attept 2
-dd<-aggregate(db1$numb,by=list(site=db1$site,coreID=db1$coreID,low_taxa=db1$low_taxa),FUN=sum)
-dd1<-dcast(dd,site+coreID~low_taxa)
-
-
-R=1000
-set.seed(0)
-site<-as.character(unique(dd1$site))
-y=c("AB","A","E","BI","BR","AD")
-site1<-site[order(match(site,y))]
-d1<-array(NA, c(length(site1), 3))
-
-cores<-71
-sum(tt1)
-dens1<-function(x){x/0.00866}
-dens2<-function(x){x/0.00817}
-
-
-
-for (x in 1:length(site1))
-{
-  print(site1[x])
-  d1[x,1]<-site1[x]
-  tt<-dd1[dd1$site==site1[x],-(1:2)]
-  tt1<-tt[sample(1:nrow(tt), 1, replace=T),]
-  lim<-sum(tt1)
-  
-  while (lim<=600) {
-    for (i in 2:cores) {
-      tt1[i,]<-tt[sample(1:nrow(tt), 1, replace=T),]
-      lim<-lim+sum(tt1)
-    }
-      print(paste("In",site1[x],nrow(tt1),"cores were sampled containing",lim,"individuals"))
-    }
-  
-  print(paste("starting diversity calculations in",site1[x]))
-  
-  ### calculating density
-  if(site1[x]=="AD"){
-    tt2<-sapply(tt1,dens1)
-  } else {
-    tt2<-sapply(tt1,dens2)
-  }
-  
-  rr<-array(NA,R)
-  
-  for (y in 1:R)
-  {
-    sel<-sample(1:nrow(tt2), nrow(tt2), replace=T)
-    f<-apply(tt2[sel,], 2, mean)
-    sel1<-which(f==0)
-    f1<-f[-sel1]
-    rr[y]<-sum(f1/sum(f1)*log(f1/sum(f1)))*-1
-  }
-  d1[x,2]<-mean(rr)
-  d1[x,3]<-sd(rr)
-}
-
-colnames(d1)<-c("site","Mean_Shannon-Wiener","SD")
