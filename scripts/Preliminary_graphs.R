@@ -27,7 +27,7 @@ colnames(DB8)[9]<-"dens"
 DB77<-aggregate(DB66$dens,by=list(low_taxa=DB66$low_taxa),FUN=mean)
 colnames(DB77)[2]<-"dens"
 
-DB77$cut<-ifelse(DB77$dens>=50,"Y","N")
+DB77$cut<-ifelse(DB77$dens>=10,"Y","N")
 
 DB88<-merge(DB66,DB77,by="low_taxa",all.x=T)
 colnames(DB88)
