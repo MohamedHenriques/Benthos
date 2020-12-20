@@ -274,7 +274,7 @@ for (x in 1:length(site1))
 
 ############## Calcular diversidade Shannon-Wienner limitando o bootstrap a 1 até 71 cores e/ou 800 individuos por site
 ########### Diversidade per site #################
-dd<-aggregate(db1$numb,by=list(site=db1$site,coreID=db1$coreID,low_taxa=db1$low_taxa),FUN=sum)
+dd<-aggregate(db2$numb,by=list(site=db2$site,coreID=db2$coreID,low_taxa=db2$low_taxa),FUN=sum)
 dd1<-dcast(dd,site+coreID~low_taxa)
 table(dd1$site)
 
