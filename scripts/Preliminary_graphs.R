@@ -11,6 +11,18 @@ DB67<-read.table("data_out/db/Final_DB_family_density_polyexcl_20201208.csv",hea
 DB68<-read.table("data_out/db/Final_DB_class1_density_polyexcl_20201208.csv",header=T,sep=";") ### created in script called Database_cleanup_joining
 
 
+ggplot(DB68,aes(x=class1,y=dens,colour=site))+
+  stat_summary(geom = "pointrange",position=position_dodge(width=0.4),size=1)+
+  theme_bw()
+  
+ggplot(DB68,aes(x=class1,y=dens1,colour=site))+
+  stat_summary(geom = "pointrange",position=position_dodge(width=0.4),size=1)+
+  theme_bw()
+
+D<-aggregate(DB68$dens,by=list(site=DB68$site,class1=DB68$class1),FUN=mean)
+D1<-dcast(class1~site,data=D)
+
+
 ### include column with cut for most abundant families
 DB7<-aggregate(DB67$dens,by=list(family=DB67$family),FUN=mean)
 colnames(DB7)[2]<-"dens"
