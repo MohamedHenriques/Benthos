@@ -53,7 +53,7 @@ unique(db_ac1$position)
 unique(db_mh2$class1)
 
 
-db_jp<-read.xlsx("D:/Work/FCUL/Doutoramento/Capitulos/Spatial_temporal_variability_invertebrates/Data_Paulino/Invert_Adonga_2019_JPaulino_corrected_20201108.xlsx",1)
+db_jp<-read.xlsx("D:/Work/FCUL/Doutoramento/Capitulos/Spatial_temporal_variability_invertebrates/Data_Paulino/Invert_Adonga_2019_JPaulino_corrected_20201214.xlsx",1)
 db_jp1<-db_jp[which(db_jp$Tipo =="Nuca"),]
 db_jp2<-db_jp1[-which(db_jp1$Area ==2),]
 db_jp3<-db_jp2[-which(db_jp2$Core>10),]
@@ -189,14 +189,14 @@ length(unique(DB66$coreID[DB66$class1=="Gastropoda"]))
 DB66$dens<-ifelse(DB66$site=="AD",DB66$numb/0.00866,DB66$numb/0.00817)
 
 #BD low_taxa
-write.table(DB66,"data_out/db/Final_DB_lowtaxa_density_polyexcl_20201208.csv",row.names=F,sep=";")
+write.table(DB66,"data_out/db/Final_DB_lowtaxa_density_polyexcl_20210121.csv",row.names=F,sep=";")
 
 #BD family
 DB67<-aggregate(DB66$numb,by=list(island=DB66$island,year=DB66$year,month=DB66$month,site=DB66$site,coreID=DB66$coreID,class1=DB66$class1,family=DB66$family),FUN=sum)
 DB67$dens<-ifelse(DB67$site=="AD",DB67$x/0.0113,DB67$x/0.00785)
-write.table(DB67,"data_out/db/Final_DB_family_density_polyexcl_20201208.csv",row.names=F,sep=";")
+write.table(DB67,"data_out/db/Final_DB_family_density_polyexcl_20210121.csv",row.names=F,sep=";")
 
 #BD class
 DB68<-aggregate(DB66$numb,by=list(island=DB66$island,year=DB66$year,month=DB66$month,site=DB66$site,coreID=DB66$coreID,class1=DB66$class1),FUN=sum)
 DB68$dens<-ifelse(DB68$site=="AD",DB68$x/0.0113,DB68$x/0.00785)
-write.table(DB68,"data_out/db/Final_DB_class1_density_polyexcl_20201208.csv",row.names=F,sep=";")
+write.table(DB68,"data_out/db/Final_DB_class1_density_polyexcl_20210121.csv",row.names=F,sep=";")

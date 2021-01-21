@@ -7,12 +7,37 @@ packs<-c("vegan","ggplot2","viridis","RColorBrewer","psych","reshape2","beepr","
 lapply(packs,require,character.only=T)
 
 
-DB66<-fread("data_out/db/Final_DB_lowtaxa_density_polyexcl_20201208.csv") ### created in script called Database_cleanup_joining
+DB66<-fread("data_out/db/Final_DB_lowtaxa_density_polyexcl_20210121.csv") ### created in script called Database_cleanup_joining
 str(DB66)
 
 DB67<-fread("data_out/db/Final_DB_family_density_polyexcl_20201208.csv") ### created in script called Database_cleanup_joining
 str(DB67)
 names(DB67)[8]<-"numb"
+
+### names to change
+#Exclude Bivalvia
+# Juntar todos os Capitellidae num so (Capitellidae+Capitella_sp+Heteromastus_filiformis,Notomastus_fauveli)
+# Juntar todos os Cirratulidae (Cirratulidae+Cirriformia_sp+Kirkegaardia_sp)
+# Remove Corbula_sulcata
+# Juntar marphysas de um lado (incluindo Marphysa_sp+Marphysa_sanguinea) e o resto dos eunicidae de outro (Eunice_sp+Eunicidae)
+# Juntar MaldanidaeA e Petaloproctus_sp aos restantes Maldanidae
+# Remover Pachygraspus_gracilis de toda a base de dados (está tudo a zero))
+# Pilargidae to be changed to Sigambra_sp
+# Polycirrus_sp+Streblosoma_sp to be joined to the rest of Terebellidae
+# Verificar que nova base de dadso tem Skenidae e Rissoidae corrigidos dos typos do paulino
+# Nereis2 para ser joined a Nereididae
+# Juntar aos Paraonidae: Aricidea_sp+Aricidea_spA+Aricidea_spB+ParaonidaeA
+# Orbiniidae sera a juncao:OrbinidaeA+Leodamas_sp+Orbiniidae
+# Phyllocida passa a chamar-se Phyllodocida1
+# Correct family name of Pseudopythina_nicklesi (it has a space)
+# Turbonilla_sp has to be eliminated from database, appears only with zeros
+# Eliminar Megalopas da ase de dados para sp richness e bray curtis
+
+sum(db[low_taxa=="Polychaeta_errantia",numb])/sum(db$numb)*100
+sum(db[low_taxa=="Polychaeta_sedentaria",numb])/sum(db$numb)*100
+
+xx<-DB66[low_taxa=="Turbonilla_sp"&numb!=0]
+db[family=="Lasaeidae "&numb!=0]
 
 
 ##Remove non-target benthos
