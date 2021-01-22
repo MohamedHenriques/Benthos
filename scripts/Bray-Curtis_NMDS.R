@@ -6,79 +6,89 @@ rm(list=ls())
 packs<-c("vegan","ggplot2","viridis","RColorBrewer","psych","reshape2","beepr","data.table")
 lapply(packs,require,character.only=T)
 
-
+## Load database 
 DB66<-fread("data_out/db/Final_DB_lowtaxa_density_polyexcl_20210121.csv") ### created in script called Database_cleanup_joining
 str(DB66)
 
-DB67<-fread("data_out/db/Final_DB_family_density_polyexcl_20201208.csv") ### created in script called Database_cleanup_joining
-str(DB67)
-names(DB67)[8]<-"numb"
 
 ### names to change
-#Exclude Bivalvia
-# Juntar todos os Capitellidae num so (Capitellidae+Capitella_sp+Heteromastus_filiformis,Notomastus_fauveli)
-# Juntar todos os Cirratulidae (Cirratulidae+Cirriformia_sp+Kirkegaardia_sp)
+
 # DONE Remove Corbula_sulcata
-# Juntar marphysas de um lado (incluindo Marphysa_sp+Marphysa_sanguinea) e o resto dos eunicidae de outro (Eunice_sp+Eunicidae)
-# Juntar MaldanidaeA e Petaloproctus_sp aos restantes Maldanidae
-# Remover Pachygraspus_gracilis de toda a base de dados (está tudo a zero))
-# Pilargidae to be changed to Sigambra_sp
-# Polycirrus_sp+Streblosoma_sp to be joined to the rest of Terebellidae
+
 # DONE Verificar que nova base de dadso tem Skenidae e Rissoidae corrigidos dos typos do paulino
-# Nereis2 para ser joined a Nereididae
-# Juntar aos Paraonidae: Aricidea_sp+Aricidea_spA+Aricidea_spB+ParaonidaeA
-# Orbiniidae sera a juncao:OrbinidaeA+Leodamas_sp+Orbiniidae
+
 # DONE Phyllocida passa a chamar-se Phyllodocida1
 # DONE Correct family name of Pseudopythina_nicklesi (it has a space) DONEEE
-# Turbonilla_sp has to be eliminated from database, appears only with zeros
-# Eliminar Megalopas da ase de dados para sp richness e bray curtis
+
 
 ##Remove non-target benthos
 unique(DB66$low_taxa[which(DB66$class1=="Other")])
-
 db<-DB66[-which(DB66$class1=="Other"),]
 unique(db$low_taxa)
 
+##Check data
 sum(db[low_taxa=="Polychaeta_errantia",numb])/sum(db$numb)*100
 sum(db[low_taxa=="Polychaeta_sedentaria",numb])/sum(db$numb)*100
 
-xx<-db[low_taxa=="Pseudopythina_nicklesi"&numb!=0]
+xx<-db[low_taxa=="Capitella_sp"&numb!=0]
 db[family=="Lasaeidae"&numb!=0]
 
+## Reduce the dimension of taxa names 
+db[,taxaf:=low_taxa]
+
+# Juntar todos os Capitellidae num so (Capitellidae+Capitella_sp+Heteromastus_filiformis,Notomastus_fauveli)
+db[taxaf=="Capitella_sp"|taxaf=="Heteromastus_filiformis"|taxaf=="Notomastus_fauveli",taxaf:="Capitellidae"]
+
+# Juntar todos os Cirratulidae (Cirratulidae+Cirriformia_sp+Kirkegaardia_sp)
+db[taxaf=="Cirratulidae"|taxaf=="Cirriformia_sp"|taxaf=="Kirkegaardia_sp",taxaf:="Cirratulidae"]
+
+# Juntar marphysas de um lado (incluindo Marphysa_sp+Marphysa_sanguinea) e o resto dos eunicidae de outro (Eunice_sp+Eunicidae)
+db[taxaf=="Marphysa_sp",taxaf:="Marphysa_sanguinea"]
+db[taxaf=="Eunice_sp",taxaf:="Eunicidae"]
+
+# Juntar MaldanidaeA e Petaloproctus_sp aos restantes Maldanidae
+db[taxaf=="MaldanidaeA"|taxaf=="Petaloproctus_sp",taxaf:="Maldanidae"]
+
+# Pilargidae to be changed to Sigambra_sp
+db[taxaf=="Pilargidae",taxaf:="Sigambra_sp"]
+
+# Polycirrus_sp+Streblosoma_sp to be joined to the rest of Terebellidae
+db[taxaf=="Polycirrus_sp"|taxaf=="Streblosoma_sp",taxaf:="Terebellidae"]
+
+# Nereis2 para ser joined a Nereididae
+db[taxaf=="Nereis2",taxaf:="Nereididae"]
+
+# Juntar aos Paraonidae: Aricidea_sp+Aricidea_spA+Aricidea_spB+ParaonidaeA
+db[taxaf=="Aricidea_sp"|taxaf=="Aricidea_spA"|taxaf=="Aricidea_spB"|taxaf=="ParaonidaeA",taxaf:="Paraonidae"]
+
+# Orbiniidae sera a juncao:OrbinidaeA+Leodamas_sp+Orbiniidae
+db[taxaf=="OrbinidaeA"|taxaf=="Leodamas_sp",taxaf:="Orbiniidae"]
+
+# Turbonilla_sp has to be eliminated from database, appears only with zeros
+# Eliminar Megalopas da ase de dados para sp richness e bray curtis
+# Remover Pachygraspus_gracilis de toda a base de dados (está tudo a zero))
+db1<-db[!taxaf=="Turbonilla_sp"][!taxaf=="Megalopa"][!taxaf=="Pachygraspus_gracilis"]
+
+db1[,unique(taxaf)]
 
 
-
-
-##Remove non-target benthos
-unique(DB67$family[which(DB67$class1=="Other")])
-
-dbf<-DB67[-which(DB67$class1=="Other"),]
-unique(dbf$family)
 
 ###remove data from 2020
-db1<-db[!year==2020]
-db1[year==2020]
-
-###remove data from 2020 fam
-db1f<-dbf[!year==2020]
-db1f[year==2020]
+db2<-db1[!year==2020]
+db2[year==2020]
+db2[,unique(taxaf)]
 
 ###aggregate and reshape database for analysis
-db2<-db1[,lapply(.SD,sum,na.rm=T),.SDcols="numb",by=c("site","month","coreID","low_taxa")]
-DB<-dcast.data.table(db2,coreID+site+month~low_taxa,value.var="numb")
-setkey(DB,coreID,site,month)
-
-###aggregate and reshape database for analysis
-db2f<-db1f[,lapply(.SD,sum,na.rm=T),.SDcols="numb",by=c("site","month","coreID","family")]
-DBf<-dcast.data.table(db2f,coreID+site+month~family,value.var="numb")
-setkey(DBf,coreID,site,month)
+db3<-db2[,lapply(.SD,sum,na.rm=T),.SDcols="numb",by=c("site","month","coreID","taxaf")]
+DB<-dcast.data.table(db3,coreID+site+month~taxaf,value.var="numb")
+setkey(DB,coreID,site,month) ## isto define as variaveis core site e month como as variaveis de base para qualquer operação
 
 ###Calculate densities
-dens1<-function(x){x/0.00866}
-dens2<-function(x){x/0.00817}
+dens1<-function(x){x/0.0113} #for Adonga
+dens2<-function(x){x/0.00785} # for the rest of the sites
 DB1<-DB[,lapply(.SD,ifelse(site=="AD",dens1,dens2)),by=c("coreID","site","month")]
 setkey(DB1,coreID,month,site)
-DB1f<-DBf[,lapply(.SD,ifelse(site=="AD",dens1,dens2)),by=c("coreID","site","month")]
+
 
 
 ###Limit database to the 75% most abundant species
@@ -88,36 +98,35 @@ test1<-sapply(test,perc)
 #nam<-names(test)[2:ncol(test)]
 test[,lapply(.SD,perc),by=site]
 rows
+
+
 ###NMDS with Bray curtis
 ##Prepare data and remove rows with zeros in all columns
 
-data<-DB1[apply(DB1[,!(1:3)],1,sum)!=0]
-dataf<-DB1f[apply(DB1f[,!(1:3)],1,sum)!=0]
+data<-DB1[apply(DB1[,!(1:3)],1,sum)!=0] ### NMDS and bray curtis do not work with empty cores. So we have to remove all of them
 
-data1<-data[,!(1:3)]
-table(is.na(data1))
-data1f<-dataf[,!(1:3)]
-table(is.na(data1f))
+data1<-data[,!(1:3)] ###NMDS requires a matrix of values only, so we need to remove the aggregating variables
 
-data2<-data[,1:3]
+###trial adjusted bray
+data1$dummy<-127.3885
+data1$dummy
+
+table(is.na(data1)) ###check if there is any NAs
+
+### log transform
+
+ff<-function(x){log(x+1)}
+data11<-data1[,lapply(.SD,ff)]
+
+data2<-data[,1:3] ###store aggregating variables to use latter
 head(data2)
-data2f<-dataf[,1:3]
-head(data2f)
 
-set.seed(2)
-NMDS<-metaMDS(data1,distance = "bray",k=2,trymax=100)
+set.seed(100)
+NMDS<-metaMDS(data1,distance="bray",k=2,trymax=1000)
 beep()
 
 plot(NMDS)
 stressplot(NMDS)
-
-set.seed(31)
-NMDSf<-metaMDS(data1f,distance = "bray",k=3,trymax=1000)
-beep()
-
-plot(NMDSf)
-stressplot(NMDSf)
-
 
 
 
@@ -131,8 +140,10 @@ data.scores$month = data2$month
 
 head(data.scores)
 
-ggplot(data.scores, aes(x = NMDS1, y = NMDS2)) + 
-  geom_point(size = 3, aes(colour=factor(month),shape=site))+ 
+
+ggplot(data.scores, aes(x = NMDS1, y = NMDS2, colour=site,shape=factor(month),group=site)) + 
+  geom_point(size = 4)+
+  #stat_summary(geom="pointrange",size = 1, aes(colour=factor(month),shape=site))+
   theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), 
         axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
         legend.text = element_text(size = 12, face ="bold", colour ="black"), 
@@ -142,7 +153,9 @@ ggplot(data.scores, aes(x = NMDS1, y = NMDS2)) +
         panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1),
         legend.key=element_blank()) + 
   labs(x = "NMDS1", colour = "Month", y = "NMDS2",shape="Site")+
-  scale_color_brewer(palette="Spectral")
+  stat_ellipse(size=2)+
+  scale_color_brewer(palette="Set1")+
+  theme_bw()
 
 
 
