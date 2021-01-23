@@ -99,6 +99,9 @@ test1<-sapply(test,perc)
 test[,lapply(.SD,perc),by=site]
 rows
 
+###
+
+
 
 ###NMDS with Bray curtis
 ##Prepare data and remove rows with zeros in all columns
@@ -107,8 +110,57 @@ data<-DB1[apply(DB1[,!(1:3)],1,sum)!=0] ### NMDS and bray curtis do not work wit
 
 data1<-data[,!(1:3)] ###NMDS requires a matrix of values only, so we need to remove the aggregating variables
 
+data2<-data[,1:3] ###store aggregating variables to use latter
+head(data2)
+
+############Cutting db
+m<-data1[,apply(.SD,2,mean)]
+str(m)
+names(m)
+
+m1<-data.table(sp=names(m),m)
+
+totil<-sum(m1$m)
+
+
+
+m1[,freq:=m/totil*100]
+m1[,sum(freq)]
+
+m2<-m1[order(-freq)]
+
+sum(m2[1:22,"freq"]) ###chosing taxa totaling 95% of overall mean density
+
+###Creating cuts for db to reduce less abundant sps
+m2[,p95:="N"][1:35,p95:="Y"]
+m2[,p75:="N"][1:14,p75:="Y"]
+m2[,p1p:="N"][1:22,p1p:="Y"]
+
+
+
+##############NMDS and bray curtis
+####regular bc
+
+table(is.na(data1)) ###check if there is any NAs
+
+###subsetting for reduced sps numb
+nam<-m2[p75=="N",sp]
+str(nam)
+
+dataS<-data1[,!..nam]
+table(is.na(dataS))
+str(dataS)
+str(data1)
+
+set.seed(10)
+NMDS<-metaMDS(dataS,distance="bray",k=2,trymax=500)
+beep()
+
+
+
 ###trial adjusted bray
 data1$dummy<-127.3885
+
 data1$dummy
 
 table(is.na(data1)) ###check if there is any NAs
@@ -118,8 +170,7 @@ table(is.na(data1)) ###check if there is any NAs
 ff<-function(x){log(x+1)}
 data11<-data1[,lapply(.SD,ff)]
 
-data2<-data[,1:3] ###store aggregating variables to use latter
-head(data2)
+
 
 set.seed(100)
 NMDS<-metaMDS(data1,distance="bray",k=2,trymax=1000)
@@ -152,7 +203,7 @@ ggplot(data.scores, aes(x = NMDS1, y = NMDS2, colour=site,shape=factor(month),gr
         legend.title = element_text(size = 14, colour = "black", face = "bold"), 
         panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1),
         legend.key=element_blank()) + 
-  labs(x = "NMDS1", colour = "Month", y = "NMDS2",shape="Site")+
+  labs(x = "NMDS1", shape = "Month", y = "NMDS2",colour="Site")+
   stat_ellipse(size=2)+
   scale_color_brewer(palette="Set1")+
   theme_bw()
