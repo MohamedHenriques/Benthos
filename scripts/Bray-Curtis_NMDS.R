@@ -147,14 +147,62 @@ table(is.na(data1)) ###check if there is any NAs
 nam<-m2[p75=="N",sp]
 str(nam)
 
-dataS<-data1[,!..nam]
+dataS<-data[,!..nam]
 table(is.na(dataS))
-str(dataS)
-str(data1)
 
-set.seed(10)
-NMDS<-metaMDS(dataS,distance="bray",k=2,trymax=500)
+
+##Remove cores with zero species after selection of p75
+dataS1<-dataS[apply(dataS[,!1:3],1,sum)!=0]
+
+
+
+dataS1$dummy<-88.49558
+
+dataS1_1<-dataS1[,!1:3]
+dataS1_2<-dataS1[,1:3]
+
+ff<-function(x){log(x+1)}
+dataS1_1log<-dataS1_1[,lapply(.SD,ff)]
+
+
+set.seed(2)
+NMDS<-metaMDS(dataS1_1log,distance="bray",k=2,trymax=1000)
 beep()
+
+###ploting
+plot(NMDS)
+stressplot(NMDS)
+
+
+#extract NMDS scores (x and y coordinates)
+data.scores = as.data.table(scores(NMDS))
+
+#add columns to data frame 
+data.scores$coreID = dataS1_2$coreID
+data.scores$site = dataS1_2$site
+data.scores$month = dataS1_2$month
+
+head(data.scores)
+
+
+ggplot(data.scores, aes(x = NMDS1, y = NMDS2, colour=site,shape=factor(month),group=site)) + 
+  geom_point(size = 4)+
+  #stat_summary(geom="pointrange",size = 1, aes(colour=factor(month),shape=site))+
+  theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), 
+        axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
+        legend.text = element_text(size = 12, face ="bold", colour ="black"), 
+        legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), 
+        axis.title.x = element_text(face = "bold", size = 14, colour = "black"), 
+        legend.title = element_text(size = 14, colour = "black", face = "bold"), 
+        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1),
+        legend.key=element_blank()) + 
+  labs(x = "NMDS1", shape = "Month", y = "NMDS2",colour="Site")+
+  stat_ellipse(size=2)+
+  scale_color_brewer(palette="Set1")+
+  theme_bw()
+
+
+
 
 
 
