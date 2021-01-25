@@ -90,19 +90,6 @@ DB1<-DB[,lapply(.SD,ifelse(site=="AD",dens1,dens2)),by=c("coreID","site","month"
 setkey(DB1,coreID,month,site)
 
 
-
-###Limit database to the 75% most abundant species
-perc<-function(x){x/sum(x)}
-test<-DB1[,!c("coreID","month")][,lapply(.SD,mean),by=site]
-test1<-sapply(test,perc)
-#nam<-names(test)[2:ncol(test)]
-test[,lapply(.SD,perc),by=site]
-rows
-
-###
-
-
-
 ###NMDS with Bray curtis
 ##Prepare data and remove rows with zeros in all columns
 
@@ -139,35 +126,82 @@ m2[,p1p:="N"][1:22,p1p:="Y"]
 
 
 ##############NMDS and bray curtis
-####regular bc
 
 table(is.na(data1)) ###check if there is any NAs
 
 ###subsetting for reduced sps numb
+
+####### 75%
 nam<-m2[p75=="N",sp]
 str(nam)
-
 dataS<-data[,!..nam]
 table(is.na(dataS))
 
 
+####### 95%
+nam1<-m2[p95=="N",sp]
+str(nam1)
+dataS1<-data[,!..nam1]
+table(is.na(dataS1))
+
+####### sp totalling at least 1% of total abundance
+nam2<-m2[p1p=="N",sp]
+str(nam2)
+dataS2<-data[,!..nam2]
+table(is.na(dataS2))
+
+
+
 ##Remove cores with zero species after selection of p75
-dataS1<-dataS[apply(dataS[,!1:3],1,sum)!=0]
+dataSS<-dataS[apply(dataS[,!1:3],1,sum)!=0]
+dataSS1<-dataS1[apply(dataS1[,!1:3],1,sum)!=0]
+dataSS2<-dataS2[apply(dataS2[,!1:3],1,sum)!=0]
 
+dataSS$dummy<-88.49558
+dataSS1$dummy<-88.49558
+dataSS2$dummy<-88.49558
 
+dataSS_1<-dataSS[,!1:3]
+dataSS_2<-dataSS[,1:3]
 
-dataS1$dummy<-88.49558
+dataSS1_1<-dataSS1[,!1:3]
+dataSS1_2<-dataSS1[,1:3]
 
-dataS1_1<-dataS1[,!1:3]
-dataS1_2<-dataS1[,1:3]
+dataSS2_1<-dataSS2[,!1:3]
+dataSS2_2<-dataSS2[,1:3]
+
 
 ff<-function(x){log(x+1)}
-dataS1_1log<-dataS1_1[,lapply(.SD,ff)]
+dataSS_1log<-dataSS_1[,lapply(.SD,ff)]
+dataSS1_1log<-dataSS1_1[,lapply(.SD,ff)]
+dataSS2_1log<-dataSS2_1[,lapply(.SD,ff)]
 
+####with dummy without log
+set.seed(1)
+NMDS_d75<-metaMDS(dataSS_1,distance="bray",k=2,trymax=1000)
+beep()
 
 set.seed(2)
-NMDS<-metaMDS(dataS1_1log,distance="bray",k=2,trymax=1000)
+NMDS_d95<-metaMDS(dataSS1_1,distance="bray",k=2,trymax=1000)
 beep()
+
+set.seed(3)
+NMDS_dp1p<-metaMDS(dataSS1_1,distance="bray",k=2,trymax=1000)
+beep()
+
+####with dummy with log
+set.seed(4)
+NMDS_d75log<-metaMDS(dataSS_1log,distance="bray",k=2,trymax=1000)
+beep()
+
+set.seed(5)
+NMDS_d95log<-metaMDS(dataSS1_1log,distance="bray",k=2,trymax=1000)
+beep()
+
+set.seed(6)
+NMDS_dp1plog<-metaMDS(dataSS1_1log,distance="bray",k=2,trymax=1000)
+beep()
+
 
 ###ploting
 plot(NMDS)
