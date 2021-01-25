@@ -456,65 +456,12 @@ PP_AD95+geom_segment(data=arrowAD95.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R
   ggrepel::geom_text_repel(data=arrowAD95.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
 
 
+set.seed(12)
+NMDSAD_dp1p<-metaMDS(dataADSS2_1,distance="bray",k=2,trymax=1000,autotransform = F)
+beep()
 
 
 
 
-#set.seed(3)
-#NMDSAD_dp1p<-metaMDS(dataADSS2_1,distance="bray",k=2,trymax=1000)
-#beep()
 
-
-###ploting
-#plot(NMDS)
-#stressplot(NMDS)
-
-
-#extract NMDS scores (x and y coordinates)
-data.scores = as.data.table(scores(NMDSAD_d75))
-
-#add columns to data frame 
-data.scores$coreID = dataADSS_2$coreID
-data.scores$site = dataADSS_2$site
-data.scores$month = dataADSS_2$month
-
-head(data.scores)
-
-p<-c("#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00","black")
-
-ggplot(data.scores, aes(x = NMDS1, y = NMDS2, colour=factor(month),group=factor(month))) + 
-  #geom_point(size = 4)+
-  geom_text(aes(label=month),size=7)+
-  #stat_summary(geom="pointrange",size = 1, aes(colour=factor(month),shape=site))+
-  theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), 
-        axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
-        legend.text = element_text(size = 12, face ="bold", colour ="black"), 
-        legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), 
-        axis.title.x = element_text(face = "bold", size = 14, colour = "black"), 
-        legend.title = element_text(size = 14, colour = "black", face = "bold"), 
-        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1),
-        legend.key=element_blank()) + 
-  labs(x = "NMDS1", y = "NMDS2",colour="Site")+
-  stat_ellipse(size=2, type="t")+
-  #scale_colour_manual(values=p)+
-  ggtitle("NMDS d95, without log, with dummy")+
-  theme_bw()
-
-
-###fit sps data
-fit<-envfit(NMDSAD_d75,dataADSS_1, permutations=999)
-arrow<-data.frame(fit$vectors$arrows,R = fit$vectors$r, P = fit$vectors$pvals)
-arrow$FG <- rownames(arrow)
-arrow.p<-arrow[arrow$P<=0.05,]
-
-ggplot(data.scores, aes(x = NMDS1, y = NMDS2)) + 
-  geom_point(size = 4,aes(colour=factor(month)))+
-  #geom_text(aes(label=month),size=7)+
-  labs(x = "NMDS1", y = "NMDS2",colour="month")+
-  #stat_ellipse(size=2, type="t",aes(group=factor(month)), colour=factor(month))+
-  scale_colour_manual(values=p)+
-  ggtitle("NMDS AD d75, without log, with dummy")+
-  geom_segment(data=arrow.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5,label=FG),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
-  geom_text(data=arrow.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),size=5)+
-  theme_bw()
 
