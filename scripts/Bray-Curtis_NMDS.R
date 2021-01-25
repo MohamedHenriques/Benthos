@@ -186,7 +186,7 @@ NMDS_d95<-metaMDS(dataSS1_1,distance="bray",k=2,trymax=1000)
 beep()
 
 set.seed(3)
-NMDS_dp1p<-metaMDS(dataSS1_1,distance="bray",k=2,trymax=1000)
+NMDS_dp1p<-metaMDS(dataSS2_1,distance="bray",k=2,trymax=1000)
 beep()
 
 ####with dummy with log
@@ -199,7 +199,7 @@ NMDS_d95log<-metaMDS(dataSS1_1log,distance="bray",k=2,trymax=1000)
 beep()
 
 set.seed(6)
-NMDS_dp1plog<-metaMDS(dataSS1_1log,distance="bray",k=2,trymax=1000)
+NMDS_dp1plog<-metaMDS(dataSS2_1log,distance="bray",k=2,trymax=1000)
 beep()
 
 
@@ -209,18 +209,20 @@ stressplot(NMDS)
 
 
 #extract NMDS scores (x and y coordinates)
-data.scores = as.data.table(scores(NMDS))
+data.scores = as.data.table(scores(NMDS_d95))
 
 #add columns to data frame 
-data.scores$coreID = dataS1_2$coreID
-data.scores$site = dataS1_2$site
-data.scores$month = dataS1_2$month
+data.scores$coreID = dataSS1_2$coreID
+data.scores$site = dataSS1_2$site
+data.scores$month = dataSS1_2$month
 
 head(data.scores)
 
+p<-c("#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00","black")
 
-ggplot(data.scores, aes(x = NMDS1, y = NMDS2, colour=site,shape=factor(month),group=site)) + 
-  geom_point(size = 4)+
+ggplot(data.scores, aes(x = NMDS1, y = NMDS2, colour=site,group=site)) + 
+  #geom_point(size = 4)+
+  geom_text(aes(label=month),size=7)+
   #stat_summary(geom="pointrange",size = 1, aes(colour=factor(month),shape=site))+
   theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), 
         axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
@@ -230,75 +232,30 @@ ggplot(data.scores, aes(x = NMDS1, y = NMDS2, colour=site,shape=factor(month),gr
         legend.title = element_text(size = 14, colour = "black", face = "bold"), 
         panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1),
         legend.key=element_blank()) + 
-  labs(x = "NMDS1", shape = "Month", y = "NMDS2",colour="Site")+
-  stat_ellipse(size=2)+
-  scale_color_brewer(palette="Set1")+
+  labs(x = "NMDS1", y = "NMDS2",colour="Site")+
+  stat_ellipse(size=2, type="t")+
+  scale_colour_manual(values=p)+
+  ggtitle("NMDS d95, without log, with dummy")+
+  theme_bw()
+
+
+###fit sps data
+fit<-envfit(NMDS_d95,dataSS1_1, permutations=999)
+arrow<-data.frame(fit$vectors$arrows,R = fit$vectors$r, P = fit$vectors$pvals)
+arrow$FG <- rownames(arrow)
+arrow.p<-arrow[arrow$P<=0.05,]
+
+
+ggplot(data.scores, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=site))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Site")+
+  stat_ellipse(size=2, type="t",aes(group=site, colour=site))+
+  scale_colour_manual(values=p)+
+  ggtitle("NMDS d95, without log, with dummy")+
+  geom_segment(data=arrow.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5,label=FG),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  geom_text(data=arrow.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),size=5)+
   theme_bw()
 
 
 
-
-
-
-###trial adjusted bray
-data1$dummy<-127.3885
-
-data1$dummy
-
-table(is.na(data1)) ###check if there is any NAs
-
-### log transform
-
-ff<-function(x){log(x+1)}
-data11<-data1[,lapply(.SD,ff)]
-
-
-
-set.seed(100)
-NMDS<-metaMDS(data1,distance="bray",k=2,trymax=1000)
-beep()
-
-plot(NMDS)
-stressplot(NMDS)
-
-
-
-#extract NMDS scores (x and y coordinates)
-data.scores = as.data.table(scores(NMDS))
-
-#add columns to data frame 
-data.scores$coreID = data2$coreID
-data.scores$site = data2$site
-data.scores$month = data2$month
-
-head(data.scores)
-
-
-ggplot(data.scores, aes(x = NMDS1, y = NMDS2, colour=site,shape=factor(month),group=site)) + 
-  geom_point(size = 4)+
-  #stat_summary(geom="pointrange",size = 1, aes(colour=factor(month),shape=site))+
-  theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), 
-        axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
-        legend.text = element_text(size = 12, face ="bold", colour ="black"), 
-        legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), 
-        axis.title.x = element_text(face = "bold", size = 14, colour = "black"), 
-        legend.title = element_text(size = 14, colour = "black", face = "bold"), 
-        panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1),
-        legend.key=element_blank()) + 
-  labs(x = "NMDS1", shape = "Month", y = "NMDS2",colour="Site")+
-  stat_ellipse(size=2)+
-  scale_color_brewer(palette="Set1")+
-  theme_bw()
-
-
-
-ordiplot(NMDS,type="n")
-orditorp(NMDS,display="species",col="red",air=0.01)
-orditorp(NMDS,display="sites",cex=0.5,air=0.01)
-
-
-ordiplot(NMDS,type="n")
-ordihull(NMDS,groups=data2$site,draw="polygon",col="grey90",label=F)
-orditorp(NMDS,display="species",col="red",air=0.01)
-orditorp(NMDS,display="sites",col=c(rep("green",5),rep("blue",5)),
-         air=0.01,cex=1)
