@@ -461,7 +461,1089 @@ NMDSAD_dp1p<-metaMDS(dataADSS2_1,distance="bray",k=2,trymax=1000,autotransform =
 beep()
 
 
+plot(NMDSAD_dp1p)
+stressplot(NMDSAD_dp1p)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresdp1p = as.data.table(scores(NMDSAD_dp1p))
+
+#add columns to data frame 
+data.scoresdp1p$coreID = dataADSS2_2$coreID
+data.scoresdp1p$site = dataADSS2_2$site
+data.scoresdp1p$month = factor(dataADSS2_2$month)
+
+head(data.scoresdp1p)
+
+PP_dp1p<-ggplot(data.scoresdp1p, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS p1p in Adonga, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Adonga
+fitdp1p<-envfit(NMDSAD_dp1p,dataADSS2_1,permutations=999)
+arrowdp1p<-data.frame(fitdp1p$vectors$arrows,R = fitdp1p$vectors$r, P = fitdp1p$vectors$pvals)
+arrowdp1p$FG <- rownames(arrowdp1p)
+arrowdp1p.p<-arrowdp1p[arrowdp1p$P<=0.05,]
+
+PP_dp1p+geom_segment(data=arrowdp1p.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowdp1p.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+#####Anrumai
+
+###NMDS with Bray curtis
+##Prepare data and remove rows with zeros in all columns
+
+dataA<-data[data$site=="A",] ###filtrar para Anrumai
+
+dataA1<-dataA[,!(1:3)] ###NMDS requires a matrix of values only, so we need to remove the aggregating variables
+
+dataA2<-dataA[,1:3] ###store aggregating variables to use latter
+head(dataA2)
+
+
+##############NMDS and bray curtis
+
+table(is.na(dataA1)) ###check if there is any NAs
+
+###subsetting for reduced sps numb
+
+####### 75%
+#nam<-m2[p75=="N",sp]
+#str(nam)
+dataAS<-dataA[,!..nam]
+table(is.na(dataAS))
+
+
+####### 95%
+#nam1<-m2[p95=="N",sp]
+#str(nam1)
+dataAS1<-dataA[,!..nam1]
+table(is.na(dataAS1))
+
+####### sp totalling at least 1% of total Anrumaindance
+#nam2<-m2[p1p=="N",sp]
+#str(nam2)
+dataAS2<-dataA[,!..nam2]
+table(is.na(dataAS2))
+
+
+
+##Remove cores with zero species after selection of p75, P95, P1P
+dataASS<-dataAS[apply(dataAS[,!1:3],1,sum)!=0]
+dataASS1<-dataAS1[apply(dataAS1[,!1:3],1,sum)!=0]
+dataASS2<-dataAS2[apply(dataAS2[,!1:3],1,sum)!=0]
+
+dataA1$dummy<-88.49558
+dataASS$dummy<-88.49558
+dataASS1$dummy<-88.49558
+dataASS2$dummy<-88.49558
+
+dataASS_1<-dataASS[,!1:3]
+dataASS_2<-dataASS[,1:3]
+
+dataASS1_1<-dataASS1[,!1:3]
+dataASS1_2<-dataASS1[,1:3]
+
+dataASS2_1<-dataASS2[,!1:3]
+dataASS2_2<-dataASS2[,1:3]
+
+####with dummy without log
+
+set.seed(0)
+NMDSA<-metaMDS(dataA1,distance="bray",k=2,trymax=1000,autotransform = F)
+beep()
+
+plot(NMDSA)
+stressplot(NMDSA)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresA = as.data.table(scores(NMDSA))
+
+#add columns to data frame 
+data.scoresA$coreID = dataA2$coreID
+data.scoresA$site = dataA2$site
+data.scoresA$month = factor(dataA2$month)
+
+head(data.scoresA)
+
+#p<-c("#E41A1C","#377EB8","#4DAF4A","#984EA3","#FF7F00","black")
+
+PP_A<-ggplot(data.scoresA, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS in Anrumai, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Anrumai
+fitA<-envfit(NMDSA,dataA1,permutations=999)
+arrowA<-data.frame(fitA$vectors$arrows,R = fitA$vectors$r, P = fitA$vectors$pvals)
+arrowA$FG <- rownames(arrowA)
+arrowA.p<-arrowA[arrowA$P<=0.05,]
+
+PP_A+
+  geom_segment(data=arrowA.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowA.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+set.seed(10)
+NMDSA_d75<-metaMDS(dataASS_1,distance="bray",k=2,trymax=1000,autotransform = F)
+beep()
+
+plot(NMDSA_d75)
+stressplot(NMDSA_d75)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresA75 = as.data.table(scores(NMDSA_d75))
+
+#add columns to data frame 
+data.scoresA75$coreID = dataASS_2$coreID
+data.scoresA75$site = dataASS_2$site
+data.scoresA75$month = factor(dataASS_2$month)
+
+head(data.scoresA75)
+
+PP_A75<-ggplot(data.scoresA75, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS p75 in Anrumai, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Anrumai
+fitA75<-envfit(NMDSA_d75,dataASS_1,permutations=999)
+arrowA75<-data.frame(fitA75$vectors$arrows,R = fitA75$vectors$r, P = fitA75$vectors$pvals)
+arrowA75$FG <- rownames(arrowA75)
+arrowA75.p<-arrowA75[arrowA75$P<=0.05,]
+
+PP_A75+geom_segment(data=arrowA75.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowA75.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
 
 
 
 
+set.seed(11)
+NMDSA_d95<-metaMDS(dataASS1_1,distance="bray",k=2,trymax=1000, autotransform = F)
+beep()
+
+plot(NMDSA_d95)
+stressplot(NMDSA_d95)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresA95 = as.data.table(scores(NMDSA_d95))
+
+#add columns to data frame 
+data.scoresA95$coreID = dataASS1_2$coreID
+data.scoresA95$site = dataASS1_2$site
+data.scoresA95$month = factor(dataASS1_2$month)
+
+head(data.scoresA95)
+
+PP_A95<-ggplot(data.scoresA95, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS p95 in Anrumai, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Anrumai
+fitA95<-envfit(NMDSA_d95,dataASS1_1,permutations=999)
+arrowA95<-data.frame(fitA95$vectors$arrows,R = fitA95$vectors$r, P = fitA95$vectors$pvals)
+arrowA95$FG <- rownames(arrowA95)
+arrowA95.p<-arrowA95[arrowA95$P<=0.05,]
+
+PP_A95+geom_segment(data=arrowA95.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowA95.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+set.seed(12)
+NMDSA_dp1p<-metaMDS(dataASS2_1,distance="bray",k=2,trymax=1000,autotransform = F)
+beep()
+
+
+plot(NMDSA_dp1p)
+stressplot(NMDSA_dp1p)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresdp1p = as.data.table(scores(NMDSA_dp1p))
+
+#add columns to data frame 
+data.scoresdp1p$coreID = dataASS2_2$coreID
+data.scoresdp1p$site = dataASS2_2$site
+data.scoresdp1p$month = factor(dataASS2_2$month)
+
+head(data.scoresdp1p)
+
+PP_dp1p<-ggplot(data.scoresdp1p, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS p1p in Anrumai, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Anrumai
+fitdp1p<-envfit(NMDSA_dp1p,dataASS2_1,permutations=999)
+arrowdp1p<-data.frame(fitdp1p$vectors$arrows,R = fitdp1p$vectors$r, P = fitdp1p$vectors$pvals)
+arrowdp1p$FG <- rownames(arrowdp1p)
+arrowdp1p.p<-arrowdp1p[arrowdp1p$P<=0.05,]
+
+PP_dp1p+geom_segment(data=arrowdp1p.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowdp1p.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+#####Abu
+
+###NMDS with Bray curtis
+##Prepare data and remove rows with zeros in all columns
+
+dataAB<-data[data$site=="AB",] ###filtrar para Abu
+
+dataAB1<-dataAB[,!(1:3)] ###NMDS requires a matrix of values only, so we need to remove the aggregating variables
+
+dataAB2<-dataAB[,1:3] ###store aggregating variables to use latter
+head(dataAB2)
+
+
+##############NMDS and bray curtis
+
+table(is.na(dataAB1)) ###check if there is any NABs
+
+###subsetting for reduced sps numb
+
+####### 75%
+#nam<-m2[p75=="N",sp]
+#str(nam)
+dataABS<-dataAB[,!..nam]
+table(is.na(dataABS))
+
+
+####### 95%
+#nam1<-m2[p95=="N",sp]
+#str(nam1)
+dataABS1<-dataAB[,!..nam1]
+table(is.na(dataABS1))
+
+####### sp totalling at least 1% of total Abundance
+#nam2<-m2[p1p=="N",sp]
+#str(nam2)
+dataABS2<-dataAB[,!..nam2]
+table(is.na(dataABS2))
+
+
+
+##Remove cores with zero species after selection of p75, P95, P1P
+dataABSS<-dataABS[apply(dataABS[,!1:3],1,sum)!=0]
+dataABSS1<-dataABS1[apply(dataABS1[,!1:3],1,sum)!=0]
+dataABSS2<-dataABS2[apply(dataABS2[,!1:3],1,sum)!=0]
+
+dataAB1$dummy<-88.49558
+dataABSS$dummy<-88.49558
+dataABSS1$dummy<-88.49558
+dataABSS2$dummy<-88.49558
+
+dataABSS_1<-dataABSS[,!1:3]
+dataABSS_2<-dataABSS[,1:3]
+
+dataABSS1_1<-dataABSS1[,!1:3]
+dataABSS1_2<-dataABSS1[,1:3]
+
+dataABSS2_1<-dataABSS2[,!1:3]
+dataABSS2_2<-dataABSS2[,1:3]
+
+####with dummy without log
+
+set.seed(0)
+NMDSAB<-metaMDS(dataAB1,distance="bray",k=2,trymax=1000,autotransform = F)
+beep()
+
+plot(NMDSAB)
+stressplot(NMDSAB)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresAB = as.data.table(scores(NMDSAB))
+
+#add columns to data frame 
+data.scoresAB$coreID = dataAB2$coreID
+data.scoresAB$site = dataAB2$site
+data.scoresAB$month = factor(dataAB2$month)
+
+head(data.scoresAB)
+
+#p<-c("#E41AB1C","#377EB8","#4DABF4AB","#984EAB3","#FF7F00","black")
+
+PP_AB<-ggplot(data.scoresAB, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS in Abu, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Abu
+fitAB<-envfit(NMDSAB,dataAB1,permutations=999)
+arrowAB<-data.frame(fitAB$vectors$arrows,R = fitAB$vectors$r, P = fitAB$vectors$pvals)
+arrowAB$FG <- rownames(arrowAB)
+arrowAB.p<-arrowAB[arrowAB$P<=0.05,]
+
+PP_AB+
+  geom_segment(data=arrowAB.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowAB.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+set.seed(10)
+NMDSAB_d75<-metaMDS(dataABSS_1,distance="bray",k=2,trymax=1000,autotransform = F)
+beep()
+
+plot(NMDSAB_d75)
+stressplot(NMDSAB_d75)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresAB75 = as.data.table(scores(NMDSAB_d75))
+
+#add columns to data frame 
+data.scoresAB75$coreID = dataABSS_2$coreID
+data.scoresAB75$site = dataABSS_2$site
+data.scoresAB75$month = factor(dataABSS_2$month)
+
+head(data.scoresAB75)
+
+PP_AB75<-ggplot(data.scoresAB75, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS p75 in Abu, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Abu
+fitAB75<-envfit(NMDSAB_d75,dataABSS_1,permutations=999)
+arrowAB75<-data.frame(fitAB75$vectors$arrows,R = fitAB75$vectors$r, P = fitAB75$vectors$pvals)
+arrowAB75$FG <- rownames(arrowAB75)
+arrowAB75.p<-arrowAB75[arrowAB75$P<=0.05,]
+
+PP_AB75+geom_segment(data=arrowAB75.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowAB75.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+
+
+set.seed(11)
+NMDSAB_d95<-metaMDS(dataABSS1_1,distance="bray",k=2,trymax=1000, autotransform = F)
+beep()
+
+plot(NMDSAB_d95)
+stressplot(NMDSAB_d95)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresAB95 = as.data.table(scores(NMDSAB_d95))
+
+#add columns to data frame 
+data.scoresAB95$coreID = dataABSS1_2$coreID
+data.scoresAB95$site = dataABSS1_2$site
+data.scoresAB95$month = factor(dataABSS1_2$month)
+
+head(data.scoresAB95)
+
+PP_AB95<-ggplot(data.scoresAB95, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS p95 in Abu, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Abu
+fitAB95<-envfit(NMDSAB_d95,dataABSS1_1,permutations=999)
+arrowAB95<-data.frame(fitAB95$vectors$arrows,R = fitAB95$vectors$r, P = fitAB95$vectors$pvals)
+arrowAB95$FG <- rownames(arrowAB95)
+arrowAB95.p<-arrowAB95[arrowAB95$P<=0.05,]
+
+PP_AB95+geom_segment(data=arrowAB95.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowAB95.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+set.seed(12)
+NMDSAB_dp1p<-metaMDS(dataABSS2_1,distance="bray",k=2,trymax=1000,autotransform = F)
+beep()
+
+
+plot(NMDSAB_dp1p)
+stressplot(NMDSAB_dp1p)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresdp1p = as.data.table(scores(NMDSAB_dp1p))
+
+#add columns to data frame 
+data.scoresdp1p$coreID = dataABSS2_2$coreID
+data.scoresdp1p$site = dataABSS2_2$site
+data.scoresdp1p$month = factor(dataABSS2_2$month)
+
+head(data.scoresdp1p)
+
+PP_dp1p<-ggplot(data.scoresdp1p, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS p1p in Abu, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Abu
+fitdp1p<-envfit(NMDSAB_dp1p,dataABSS2_1,permutations=999)
+arrowdp1p<-data.frame(fitdp1p$vectors$arrows,R = fitdp1p$vectors$r, P = fitdp1p$vectors$pvals)
+arrowdp1p$FG <- rownames(arrowdp1p)
+arrowdp1p.p<-arrowdp1p[arrowdp1p$P<=0.05,]
+
+PP_dp1p+geom_segment(data=arrowdp1p.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowdp1p.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+#####Escadinhas
+
+###NMDS with Bray curtis
+##Prepare data and remove rows with zeros in all columns
+
+dataE<-data[data$site=="E",] ###filtrar para Escadinhas
+
+dataE1<-dataE[,!(1:3)] ###NMDS requires a matrix of values only, so we need to remove the aggregating variables
+
+dataE2<-dataE[,1:3] ###store aggregating variables to use latter
+head(dataE2)
+
+
+##############NMDS and bray curtis
+
+table(is.na(dataE1)) ###check if there is any NEs
+
+###subsetting for reduced sps numb
+
+####### 75%
+#nam<-m2[p75=="N",sp]
+#str(nam)
+dataES<-dataE[,!..nam]
+table(is.na(dataES))
+
+
+####### 95%
+#nam1<-m2[p95=="N",sp]
+#str(nam1)
+dataES1<-dataE[,!..nam1]
+table(is.na(dataES1))
+
+####### sp totalling at least 1% of total Escadinhasndance
+#nam2<-m2[p1p=="N",sp]
+#str(nam2)
+dataES2<-dataE[,!..nam2]
+table(is.na(dataES2))
+
+
+
+##Remove cores with zero species after selection of p75, P95, P1P
+dataESS<-dataES[apply(dataES[,!1:3],1,sum)!=0]
+dataESS1<-dataES1[apply(dataES1[,!1:3],1,sum)!=0]
+dataESS2<-dataES2[apply(dataES2[,!1:3],1,sum)!=0]
+
+dataE1$dummy<-88.49558
+dataESS$dummy<-88.49558
+dataESS1$dummy<-88.49558
+dataESS2$dummy<-88.49558
+
+dataESS_1<-dataESS[,!1:3]
+dataESS_2<-dataESS[,1:3]
+
+dataESS1_1<-dataESS1[,!1:3]
+dataESS1_2<-dataESS1[,1:3]
+
+dataESS2_1<-dataESS2[,!1:3]
+dataESS2_2<-dataESS2[,1:3]
+
+####with dummy without log
+
+set.seed(0)
+NMDSE<-metaMDS(dataE1,distance="bray",k=2,trymax=1000,autotransform = F)
+beep()
+
+plot(NMDSE)
+stressplot(NMDSE)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresE = as.data.table(scores(NMDSE))
+
+#add columns to data frame 
+data.scoresE$coreID = dataE2$coreID
+data.scoresE$site = dataE2$site
+data.scoresE$month = factor(dataE2$month)
+
+head(data.scoresE)
+
+#p<-c("#E41E1C","#377EB8","#4DEF4E","#984EE3","#FF7F00","black")
+
+PP_E<-ggplot(data.scoresE, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS in Escadinhas, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Escadinhas
+fitE<-envfit(NMDSE,dataE1,permutations=999)
+arrowE<-data.frame(fitE$vectors$arrows,R = fitE$vectors$r, P = fitE$vectors$pvals)
+arrowE$FG <- rownames(arrowE)
+arrowE.p<-arrowE[arrowE$P<=0.05,]
+
+PP_E+
+  geom_segment(data=arrowE.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowE.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+set.seed(10)
+NMDSE_d75<-metaMDS(dataESS_1,distance="bray",k=2,trymax=1000,autotransform = F)
+beep()
+
+plot(NMDSE_d75)
+stressplot(NMDSE_d75)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresE75 = as.data.table(scores(NMDSE_d75))
+
+#add columns to data frame 
+data.scoresE75$coreID = dataESS_2$coreID
+data.scoresE75$site = dataESS_2$site
+data.scoresE75$month = factor(dataESS_2$month)
+
+head(data.scoresE75)
+
+PP_E75<-ggplot(data.scoresE75, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS p75 in Escadinhas, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Escadinhas
+fitE75<-envfit(NMDSE_d75,dataESS_1,permutations=999)
+arrowE75<-data.frame(fitE75$vectors$arrows,R = fitE75$vectors$r, P = fitE75$vectors$pvals)
+arrowE75$FG <- rownames(arrowE75)
+arrowE75.p<-arrowE75[arrowE75$P<=0.05,]
+
+PP_E75+geom_segment(data=arrowE75.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowE75.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+
+
+set.seed(11)
+NMDSE_d95<-metaMDS(dataESS1_1,distance="bray",k=2,trymax=1000, autotransform = F)
+beep()
+
+plot(NMDSE_d95)
+stressplot(NMDSE_d95)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresE95 = as.data.table(scores(NMDSE_d95))
+
+#add columns to data frame 
+data.scoresE95$coreID = dataESS1_2$coreID
+data.scoresE95$site = dataESS1_2$site
+data.scoresE95$month = factor(dataESS1_2$month)
+
+head(data.scoresE95)
+
+PP_E95<-ggplot(data.scoresE95, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS p95 in Escadinhas, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Escadinhas
+fitE95<-envfit(NMDSE_d95,dataESS1_1,permutations=999)
+arrowE95<-data.frame(fitE95$vectors$arrows,R = fitE95$vectors$r, P = fitE95$vectors$pvals)
+arrowE95$FG <- rownames(arrowE95)
+arrowE95.p<-arrowE95[arrowE95$P<=0.05,]
+
+PP_E95+geom_segment(data=arrowE95.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowE95.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+set.seed(12)
+NMDSE_dp1p<-metaMDS(dataESS2_1,distance="bray",k=2,trymax=1000,autotransform = F)
+beep()
+
+
+plot(NMDSE_dp1p)
+stressplot(NMDSE_dp1p)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresdp1p = as.data.table(scores(NMDSE_dp1p))
+
+#add columns to data frame 
+data.scoresdp1p$coreID = dataESS2_2$coreID
+data.scoresdp1p$site = dataESS2_2$site
+data.scoresdp1p$month = factor(dataESS2_2$month)
+
+head(data.scoresdp1p)
+
+PP_dp1p<-ggplot(data.scoresdp1p, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS p1p in Escadinhas, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Escadinhas
+fitdp1p<-envfit(NMDSE_dp1p,dataESS2_1,permutations=999)
+arrowdp1p<-data.frame(fitdp1p$vectors$arrows,R = fitdp1p$vectors$r, P = fitdp1p$vectors$pvals)
+arrowdp1p$FG <- rownames(arrowdp1p)
+arrowdp1p.p<-arrowdp1p[arrowdp1p$P<=0.05,]
+
+PP_dp1p+geom_segment(data=arrowdp1p.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowdp1p.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+
+#####Bijante
+
+###NMDS with Bray curtis
+##Prepare data and remove rows with zeros in all columns
+
+dataBI<-data[data$site=="BI",] ###filtrar para Bijante
+
+dataBI1<-dataBI[,!(1:3)] ###NMDS requires a matrix of values only, so we need to remove the aggregating variables
+
+dataBI2<-dataBI[,1:3] ###store aggregating variables to use latter
+head(dataBI2)
+
+
+##############NMDS and bray curtis
+
+table(is.na(dataBI1)) ###check if there is any NBIs
+
+###subsetting for reduced sps numb
+
+####### 75%
+#nam<-m2[p75=="N",sp]
+#str(nam)
+dataBIS<-dataBI[,!..nam]
+table(is.na(dataBIS))
+
+
+####### 95%
+#nam1<-m2[p95=="N",sp]
+#str(nam1)
+dataBIS1<-dataBI[,!..nam1]
+table(is.na(dataBIS1))
+
+####### sp totalling at least 1% of total Bijantendance
+#nam2<-m2[p1p=="N",sp]
+#str(nam2)
+dataBIS2<-dataBI[,!..nam2]
+table(is.na(dataBIS2))
+
+
+
+##Remove cores with zero species after selection of p75, P95, P1P
+dataBISS<-dataBIS[apply(dataBIS[,!1:3],1,sum)!=0]
+dataBISS1<-dataBIS1[apply(dataBIS1[,!1:3],1,sum)!=0]
+dataBISS2<-dataBIS2[apply(dataBIS2[,!1:3],1,sum)!=0]
+
+dataBI1$dummy<-88.49558
+dataBISS$dummy<-88.49558
+dataBISS1$dummy<-88.49558
+dataBISS2$dummy<-88.49558
+
+dataBISS_1<-dataBISS[,!1:3]
+dataBISS_2<-dataBISS[,1:3]
+
+dataBISS1_1<-dataBISS1[,!1:3]
+dataBISS1_2<-dataBISS1[,1:3]
+
+dataBISS2_1<-dataBISS2[,!1:3]
+dataBISS2_2<-dataBISS2[,1:3]
+
+####with dummy without log
+
+set.seed(0)
+NMDSBI<-metaMDS(dataBI1,distance="bray",k=2,trymax=1000,autotransform = F)
+beep()
+
+plot(NMDSBI)
+stressplot(NMDSBI)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresBI = as.data.table(scores(NMDSBI))
+
+#add columns to data frame 
+data.scoresBI$coreID = dataBI2$coreID
+data.scoresBI$site = dataBI2$site
+data.scoresBI$month = factor(dataBI2$month)
+
+head(data.scoresBI)
+
+#p<-c("#E41BI1C","#377EB8","#4DBIF4BI","#984EBI3","#FF7F00","black")
+
+PP_BI<-ggplot(data.scoresBI, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS in Bijante, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Bijante
+fitBI<-envfit(NMDSBI,dataBI1,permutations=999)
+arrowBI<-data.frame(fitBI$vectors$arrows,R = fitBI$vectors$r, P = fitBI$vectors$pvals)
+arrowBI$FG <- rownames(arrowBI)
+arrowBI.p<-arrowBI[arrowBI$P<=0.05,]
+
+PP_BI+
+  geom_segment(data=arrowBI.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowBI.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+set.seed(10)
+NMDSBI_d75<-metaMDS(dataBISS_1,distance="bray",k=2,trymax=1000,autotransform = F)
+beep()
+
+plot(NMDSBI_d75)
+stressplot(NMDSBI_d75)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresBI75 = as.data.table(scores(NMDSBI_d75))
+
+#add columns to data frame 
+data.scoresBI75$coreID = dataBISS_2$coreID
+data.scoresBI75$site = dataBISS_2$site
+data.scoresBI75$month = factor(dataBISS_2$month)
+
+head(data.scoresBI75)
+
+PP_BI75<-ggplot(data.scoresBI75, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS p75 in Bijante, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Bijante
+fitBI75<-envfit(NMDSBI_d75,dataBISS_1,permutations=999)
+arrowBI75<-data.frame(fitBI75$vectors$arrows,R = fitBI75$vectors$r, P = fitBI75$vectors$pvals)
+arrowBI75$FG <- rownames(arrowBI75)
+arrowBI75.p<-arrowBI75[arrowBI75$P<=0.05,]
+
+PP_BI75+geom_segment(data=arrowBI75.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowBI75.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+
+
+set.seed(11)
+NMDSBI_d95<-metaMDS(dataBISS1_1,distance="bray",k=2,trymax=1000, autotransform = F)
+beep()
+
+plot(NMDSBI_d95)
+stressplot(NMDSBI_d95)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresBI95 = as.data.table(scores(NMDSBI_d95))
+
+#add columns to data frame 
+data.scoresBI95$coreID = dataBISS1_2$coreID
+data.scoresBI95$site = dataBISS1_2$site
+data.scoresBI95$month = factor(dataBISS1_2$month)
+
+head(data.scoresBI95)
+
+PP_BI95<-ggplot(data.scoresBI95, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS p95 in Bijante, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Bijante
+fitBI95<-envfit(NMDSBI_d95,dataBISS1_1,permutations=999)
+arrowBI95<-data.frame(fitBI95$vectors$arrows,R = fitBI95$vectors$r, P = fitBI95$vectors$pvals)
+arrowBI95$FG <- rownames(arrowBI95)
+arrowBI95.p<-arrowBI95[arrowBI95$P<=0.05,]
+
+PP_BI95+geom_segment(data=arrowBI95.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowBI95.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+set.seed(12)
+NMDSBI_dp1p<-metaMDS(dataBISS2_1,distance="bray",k=2,trymax=1000,autotransform = F)
+beep()
+
+
+plot(NMDSBI_dp1p)
+stressplot(NMDSBI_dp1p)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresdp1p = as.data.table(scores(NMDSBI_dp1p))
+
+#add columns to data frame 
+data.scoresdp1p$coreID = dataBISS2_2$coreID
+data.scoresdp1p$site = dataBISS2_2$site
+data.scoresdp1p$month = factor(dataBISS2_2$month)
+
+head(data.scoresdp1p)
+
+PP_dp1p<-ggplot(data.scoresdp1p, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS p1p in Bijante, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Bijante
+fitdp1p<-envfit(NMDSBI_dp1p,dataBISS2_1,permutations=999)
+arrowdp1p<-data.frame(fitdp1p$vectors$arrows,R = fitdp1p$vectors$r, P = fitdp1p$vectors$pvals)
+arrowdp1p$FG <- rownames(arrowdp1p)
+arrowdp1p.p<-arrowdp1p[arrowdp1p$P<=0.05,]
+
+PP_dp1p+geom_segment(data=arrowdp1p.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowdp1p.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+
+#####Bruce
+
+###NMDS with Bray curtis
+##Prepare data and remove rows with zeros in all columns
+
+dataBR<-data[data$site=="BR",] ###filtrar para Bruce
+
+dataBR1<-dataBR[,!(1:3)] ###NMDS requires a matrix of values only, so we need to remove the aggregating variables
+
+dataBR2<-dataBR[,1:3] ###store aggregating variables to use latter
+head(dataBR2)
+
+
+##############NMDS and bray curtis
+
+table(is.na(dataBR1)) ###check if there is any NBRs
+
+###subsetting for reduced sps numb
+
+####### 75%
+#nam<-m2[p75=="N",sp]
+#str(nam)
+dataBRS<-dataBR[,!..nam]
+table(is.na(dataBRS))
+
+
+####### 95%
+#nam1<-m2[p95=="N",sp]
+#str(nam1)
+dataBRS1<-dataBR[,!..nam1]
+table(is.na(dataBRS1))
+
+####### sp totalling at least 1% of total Brucendance
+#nam2<-m2[p1p=="N",sp]
+#str(nam2)
+dataBRS2<-dataBR[,!..nam2]
+table(is.na(dataBRS2))
+
+
+
+##Remove cores with zero species after selection of p75, P95, P1P
+dataBRSS<-dataBRS[apply(dataBRS[,!1:3],1,sum)!=0]
+dataBRSS1<-dataBRS1[apply(dataBRS1[,!1:3],1,sum)!=0]
+dataBRSS2<-dataBRS2[apply(dataBRS2[,!1:3],1,sum)!=0]
+
+dataBR1$dummy<-88.49558
+dataBRSS$dummy<-88.49558
+dataBRSS1$dummy<-88.49558
+dataBRSS2$dummy<-88.49558
+
+dataBRSS_1<-dataBRSS[,!1:3]
+dataBRSS_2<-dataBRSS[,1:3]
+
+dataBRSS1_1<-dataBRSS1[,!1:3]
+dataBRSS1_2<-dataBRSS1[,1:3]
+
+dataBRSS2_1<-dataBRSS2[,!1:3]
+dataBRSS2_2<-dataBRSS2[,1:3]
+
+####with dummy without log
+
+set.seed(0)
+NMDSBR<-metaMDS(dataBR1,distance="bray",k=2,trymax=1000,autotransform = F)
+beep()
+
+plot(NMDSBR)
+stressplot(NMDSBR)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresBR = as.data.table(scores(NMDSBR))
+
+#add columns to data frame 
+data.scoresBR$coreID = dataBR2$coreID
+data.scoresBR$site = dataBR2$site
+data.scoresBR$month = factor(dataBR2$month)
+
+head(data.scoresBR)
+
+#p<-c("#E41BR1C","#377EB8","#4DBRF4BR","#984EBR3","#FF7F00","black")
+
+PP_BR<-ggplot(data.scoresBR, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS in Bruce, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Bruce
+fitBR<-envfit(NMDSBR,dataBR1,permutations=999)
+arrowBR<-data.frame(fitBR$vectors$arrows,R = fitBR$vectors$r, P = fitBR$vectors$pvals)
+arrowBR$FG <- rownames(arrowBR)
+arrowBR.p<-arrowBR[arrowBR$P<=0.05,]
+
+PP_BR+
+  geom_segment(data=arrowBR.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowBR.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+set.seed(10)
+NMDSBR_d75<-metaMDS(dataBRSS_1,distance="bray",k=2,trymax=1000,autotransform = F)
+beep()
+
+plot(NMDSBR_d75)
+stressplot(NMDSBR_d75)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresBR75 = as.data.table(scores(NMDSBR_d75))
+
+#add columns to data frame 
+data.scoresBR75$coreID = dataBRSS_2$coreID
+data.scoresBR75$site = dataBRSS_2$site
+data.scoresBR75$month = factor(dataBRSS_2$month)
+
+head(data.scoresBR75)
+
+PP_BR75<-ggplot(data.scoresBR75, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS p75 in Bruce, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Bruce
+fitBR75<-envfit(NMDSBR_d75,dataBRSS_1,permutations=999)
+arrowBR75<-data.frame(fitBR75$vectors$arrows,R = fitBR75$vectors$r, P = fitBR75$vectors$pvals)
+arrowBR75$FG <- rownames(arrowBR75)
+arrowBR75.p<-arrowBR75[arrowBR75$P<=0.05,]
+
+PP_BR75+geom_segment(data=arrowBR75.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowBR75.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+
+
+set.seed(11)
+NMDSBR_d95<-metaMDS(dataBRSS1_1,distance="bray",k=2,trymax=1000, autotransform = F)
+beep()
+
+plot(NMDSBR_d95)
+stressplot(NMDSBR_d95)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresBR95 = as.data.table(scores(NMDSBR_d95))
+
+#add columns to data frame 
+data.scoresBR95$coreID = dataBRSS1_2$coreID
+data.scoresBR95$site = dataBRSS1_2$site
+data.scoresBR95$month = factor(dataBRSS1_2$month)
+
+head(data.scoresBR95)
+
+PP_BR95<-ggplot(data.scoresBR95, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS p95 in Bruce, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Bruce
+fitBR95<-envfit(NMDSBR_d95,dataBRSS1_1,permutations=999)
+arrowBR95<-data.frame(fitBR95$vectors$arrows,R = fitBR95$vectors$r, P = fitBR95$vectors$pvals)
+arrowBR95$FG <- rownames(arrowBR95)
+arrowBR95.p<-arrowBR95[arrowBR95$P<=0.05,]
+
+PP_BR95+geom_segment(data=arrowBR95.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowBR95.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+set.seed(12)
+NMDSBR_dp1p<-metaMDS(dataBRSS2_1,distance="bray",k=2,trymax=1000,autotransform = F)
+beep()
+
+
+plot(NMDSBR_dp1p)
+stressplot(NMDSBR_dp1p)
+
+#extract NMDS scores (x and y coordinates)
+data.scoresdp1p = as.data.table(scores(NMDSBR_dp1p))
+
+#add columns to data frame 
+data.scoresdp1p$coreID = dataBRSS2_2$coreID
+data.scoresdp1p$site = dataBRSS2_2$site
+data.scoresdp1p$month = factor(dataBRSS2_2$month)
+
+head(data.scoresdp1p)
+
+PP_dp1p<-ggplot(data.scoresdp1p, aes(x = NMDS1, y = NMDS2)) + 
+  geom_point(size = 4,aes(colour=month))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x = "NMDS1", y = "NMDS2",colour="Month")+
+  stat_ellipse(size=2, type="t",aes(group=month, colour=month))+
+  #scale_colour_manual(values=p)+
+  ggtitle("NMDS p1p in Bruce, without log, with dummy")+
+  theme_bw()
+
+###fit sps data in Bruce
+fitdp1p<-envfit(NMDSBR_dp1p,dataBRSS2_1,permutations=999)
+arrowdp1p<-data.frame(fitdp1p$vectors$arrows,R = fitdp1p$vectors$r, P = fitdp1p$vectors$pvals)
+arrowdp1p$FG <- rownames(arrowdp1p)
+arrowdp1p.p<-arrowdp1p[arrowdp1p$P<=0.05,]
+
+PP_dp1p+geom_segment(data=arrowdp1p.p, aes(x=0,y=0,xend=NMDS1*R*4.5,yend=NMDS2*R*4.5),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowdp1p.p,aes(x=NMDS1*R*4.5,y=NMDS2*R*4.5,label=FG),cex=5,direction="both",segment.size=0.25)
