@@ -3,7 +3,7 @@ graphics.off()
 rm(list=ls())
 
 ## Pacotes
-packs<-c("vegan","ggplot2","viridis","RColorBrewer","psych","reshape2","beepr","data.table","BiodiversityR","cluster")
+packs<-c("vegan","ggplot2","viridis","RColorBrewer","psych","reshape2","beepr","data.table","BiodiversityR","cluster","pairwiseAdonis")
 lapply(packs,require,character.only=T)
 
 p<-c("#4DAF4A","darkgreen","#377EB8","#984EA3","#FF7F00","#E41A1C")
@@ -120,6 +120,90 @@ permutest(dispersion)
 
 plot(dispersion,hull=F,ellipse=T,lwd=1)
 
+set.seed(200)
+pairwise.adonis(data75_1log,factors=data75_2$season,p.adjust.m="bonferroni", perm=100000)
+
+
+################OVERALL SPATIAL AND TEMPORAL######### CANONICAL 
+
+### CAP Total
+###
+data2[,site:=factor(site,levels=c("A","AB","BI","E","BR","AD"))]
+
+set.seed(118)
+system.time(
+  OM1Tot<-CAPdiscrim(data1log~site*season,data=data2,dist="bray",axes=3,m=0,add=F, permutations = 1000)
+)
+beep()
+summary(OM1Tot)
+OM1Tot$manova
+OM1Tot$m
+
+##PERMANOVA
+perTot<-adonis(data1log~site*season,data=data2,permutations = 1000)
+perTot
+
+distTot<-vegdist(data1log,method="bray")
+
+set.seed(1000)
+dispTot<-betadisper(distTot,group=data2$site)
+permutest(dispTot)
+boxplot(dispTot)
+
+TukTot<-TukeyHSD(dispTot)
+plot(TukTot)
+
+
+
+#extract CAP scores (x and y coordinates)
+data.scoresCAP_Tot = as.data.table(scores(OM1Tot))
+
+#add columns to data frame 
+data.scoresCAP_Tot$site = data2$site
+data.scoresCAP_Tot$season = data2$season
+head(data.scoresCAP_Tot)
+
+
+###fit sps data in Tot
+set.seed(119)
+fitCAP_Tot<-envfit(OM1Tot,data1log,permutations=100000)
+arrowCAP_Tot<-data.frame(fitCAP_Tot$vectors$arrows,R=fitCAP_Tot$vectors$r,P=fitCAP_Tot$vectors$pvals)
+arrowCAP_Tot$FG <- rownames(arrowCAP_Tot)
+arrowarrowCAP_Tot.p<-arrowCAP_Tot[arrowCAP_Tot$P<=0.05&arrowCAP_Tot$R>=0.15,]
+
+##Site
+PP_CAP_site<-ggplot(data.scoresCAP_Tot,aes(x=LD1,y=LD2))+
+  geom_point(size=2,aes(colour=site))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x="LD1",y="LD2",colour="Site",fill="Site")+
+  stat_ellipse(size=2,type="t",aes(group=site,colour=site,fill=site),level=.6,geom="polygon",alpha=.2)+
+  scale_colour_manual(values=p)+
+  scale_fill_manual(values=p)+
+  ggtitle("Canonical Discriminant per site")+
+  theme_bw()
+PP_CAP_site+
+  geom_segment(data=arrowarrowCAP_Tot.p,aes(x=0,y=0,xend=LD1*R*7,yend=LD2*R*7),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowarrowCAP_Tot.p,aes(x=LD1*R*7,y=LD2*R*7,label=FG),cex=5,direction="both",segment.size=0.25)
+
+##season
+PP_CAP_S<-ggplot(data.scoresCAP_Tot,aes(x=LD1,y=LD2))+
+  geom_point(size=4,aes(colour=season))+
+  #geom_text(aes(label=month),size=7)+
+  labs(x="LD1",y="LD2",colour="Season",fill="Season")+
+  stat_ellipse(size=2,type="t",aes(group=season,colour=season,fill=season),level=.6,geom="polygon",alpha=.2)+
+  #scale_colour_manual(values=p)+
+  #scale_fill_manual(values=p)+
+  ggtitle("Canonical Discriminant per season")+
+  theme_bw()
+PP_CAP_S+
+  geom_segment(data=arrowarrowCAP_Tot.p,aes(x=0,y=0,xend=LD1*R*7,yend=LD2*R*7),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
+  ggrepel::geom_text_repel(data=arrowarrowCAP_Tot.p,aes(x=LD1*R*7,y=LD2*R*7,label=FG),cex=5,direction="both",segment.size=0.25)
+
+
+
+
+
+
 
 ######Anrumai
 
@@ -178,6 +262,9 @@ dispersionA<-betadisper(distA,group=dataA2$season)
 permutest(dispersionA)
 
 plot(dispersionA,hull=F,ellipse=T,lwd=1)
+
+set.seed(200)
+pairwise.adonis(distA,factors=dataA2$season,p.adjust.m="bonferroni", perm=100000)
 
 ### CAP Anrumai
 ###
@@ -273,6 +360,10 @@ dispersionAB<-betadisper(distAB,group=dataAB2$season)
 permutest(dispersionAB)
 
 plot(dispersionAB,hull=F,ellipse=T,lwd=1)
+
+set.seed(201)
+pairwise.adonis(distAB,factors=dataAB2$season,p.adjust.m="bonferroni", perm=100000)
+
 
 ### CAP Abu
 ###
@@ -371,6 +462,10 @@ permutest(dispersionBI)
 
 plot(dispersionBI,hull=F,ellipse=T,lwd=1)
 
+set.seed(400)
+pairwise.adonis(distBI,factors=dataBI2$season,p.adjust.m="bonferroni", perm=100000)
+
+
 ### CAP Bijante
 ###
 system.time(
@@ -405,11 +500,6 @@ PP_CAP_BI<-ggplot(data.scoresCAP_BI,aes(x=LD1,y=LD2))+
 PP_CAP_BI+
   geom_segment(data=arrowarrowCAP_BI.p,aes(x=0,y=0,xend=LD1*R*6,yend=LD2*R*6),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
   ggrepel::geom_text_repel(data=arrowarrowCAP_BI.p,aes(x=LD1*R*6,y=LD2*R*6,label=FG),cex=5,direction="both",segment.size=0.25)
-
-
-
-
-
 
 
 ######Bruce
@@ -469,6 +559,11 @@ permutest(dispersionBR)
 
 plot(dispersionBR,hull=F,ellipse=T,lwd=1)
 
+
+set.seed(500)
+pairwise.adonis(distBR,factors=dataBR2$season,p.adjust.m="bonferroni", perm=100000)
+
+
 ### CAP Bruce
 ###
 system.time(
@@ -503,11 +598,6 @@ PP_CAP_BR<-ggplot(data.scoresCAP_BR,aes(x=LD1,y=LD2))+
 PP_CAP_BR+
   geom_segment(data=arrowarrowCAP_BR.p,aes(x=0,y=0,xend=LD1*R*6,yend=LD2*R*6),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
   ggrepel::geom_text_repel(data=arrowarrowCAP_BR.p,aes(x=LD1*R*6,y=LD2*R*6,label=FG),cex=5,direction="both",segment.size=0.25)
-
-
-
-
-
 
 
 
@@ -569,6 +659,10 @@ permutest(dispersionE)
 
 plot(dispersionE,hull=F,ellipse=T,lwd=1)
 
+set.seed(600)
+pairwise.adonis(distE,factors=dataE2$season,p.adjust.m="bonferroni", perm=100000)
+
+
 ### CAP Escadinhas
 ###
 system.time(
@@ -603,8 +697,6 @@ PP_CAP_E<-ggplot(data.scoresCAP_E,aes(x=LD1,y=LD2))+
 PP_CAP_E+
   geom_segment(data=arrowarrowCAP_E.p,aes(x=0,y=0,xend=LD1*R*6,yend=LD2*R*6),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
   ggrepel::geom_text_repel(data=arrowarrowCAP_E.p,aes(x=LD1*R*6,y=LD2*R*6,label=FG),cex=5,direction="both",segment.size=0.25)
-
-
 
 
 
@@ -665,6 +757,10 @@ dispersionAD<-betadisper(distAD,group=dataAD2$season)
 permutest(dispersionAD)
 
 plot(dispersionAD,hull=F,ellipse=T,lwd=1)
+
+set.seed(700)
+pairwise.adonis(distAD,factors=dataAD2$season,p.adjust.m="bonferroni", perm=100000)
+
 
 ### CAP Adonga
 ###
@@ -769,6 +865,21 @@ permutest(dispersionBeg)
 
 plot(dispersionBeg,hull=F,ellipse=T,lwd=1)
 
+##pairwise
+set.seed(200)
+pairwise.adonis(distBeg,factors=dataBeg2$site,p.adjust.m="bonferroni", perm=100000)
+
+###test of pairwise validity
+dataBIA<-dataBeg[site=="A"|site=="BI"]
+table(dataBIA$site)
+table(dataBIA$season)
+
+distBIA<-vegdist(log(dataBIA[,-c(1:3,89)]+1),method="bray")
+perBIA<-adonis(distBIA~site,data=dataBIA[,c(1:3,89)],permutations=999)
+perBIA
+
+
+
 ### CAP Begining
 ###
 set.seed(105)
@@ -871,6 +982,11 @@ permutest(dispersionMid)
 
 plot(dispersionMid,hull=F,ellipse=T,lwd=1)
 
+##pairwise
+set.seed(300)
+pairwise.adonis(distMid,factors=dataMid2$site,p.adjust.m="bonferroni", perm=100000)
+
+
 ### CAP Mid
 ###
 set.seed(111)
@@ -971,6 +1087,12 @@ permutest(dispersionEnd)
 
 plot(dispersionEnd,hull=F,ellipse=T,lwd=1)
 
+
+##pairwise
+set.seed(300)
+pairwise.adonis(distEnd,factors=dataEnd2$site,p.adjust.m="bonferroni", perm=100000)
+
+
 ### CAP End
 ###
 set.seed(117)
@@ -1010,51 +1132,6 @@ PP_CAP_End+
   geom_segment(data=arrowarrowCAP_End.p,aes(x=0,y=0,xend=LD1*R*6,yend=LD2*R*6),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
   ggrepel::geom_text_repel(data=arrowarrowCAP_End.p,aes(x=LD1*R*6,y=LD2*R*6,label=FG),cex=5,direction="both",segment.size=0.25)
 
-
-
-################OVERALL SPATIAL AND TEMPORAL
-
-### CAP End
-###
-data2[,site:=factor(site,levels=c("A","AB","BI","E","BR","AD"))]
-
-set.seed(118)
-system.time(
-  OM1Tot<-CAPdiscrim(data1log~site*season,data=data2,dist="bray",axes=3,m=0,add=F, permutations = 1000)
-)
-beep()
-summary(OM1Tot)
-OM1Tot$manova
-OM1Tot$m
-
-#extract CAP scores (x and y coordinates)
-data.scoresCAP_Tot = as.data.table(scores(OM1Tot))
-
-#add columns to data frame 
-data.scoresCAP_Tot$site = dataTot2$site
-data.scoresCAP_Tot$season = dataTot2$season
-head(data.scoresCAP_Tot)
-
-
-###fit sps data in Tot
-set.seed(118)
-fitCAP_Tot<-envfit(OM1Tot,dataTot1log,permutations=999)
-arrowCAP_Tot<-data.frame(fitCAP_Tot$vectors$arrows,R=fitCAP_Tot$vectors$r,P=fitCAP_Tot$vectors$pvals)
-arrowCAP_Tot$FG <- rownames(arrowCAP_Tot)
-arrowarrowCAP_Tot.p<-arrowCAP_Tot[arrowCAP_Tot$P<=0.05&arrowCAP_Tot$R>=0.15,]
-
-PP_CAP_Tot<-ggplot(data.scoresCAP_Tot,aes(x=LD1,y=LD2))+
-  geom_point(size=4,aes(colour=site))+
-  #geom_text(aes(label=month),size=7)+
-  labs(x="LD1",y="LD2",colour="Site",fill="Site")+
-  stat_ellipse(size=2,type="t",aes(group=site,colour=site,fill=site),level=.6,geom="polygon",alpha=.2)+
-  scale_colour_manual(values=p)+
-  scale_fill_manual(values=p)+
-  ggtitle("LD in Tot, with log, with dummy")+
-  theme_bw()
-PP_CAP_Tot+
-  geom_segment(data=arrowarrowCAP_Tot.p,aes(x=0,y=0,xend=LD1*R*6,yend=LD2*R*6),arrow=arrow(length=unit(.2,"cm")),col="grey40",lwd=1)+
-  ggrepel::geom_text_repel(data=arrowarrowCAP_Tot.p,aes(x=LD1*R*6,y=LD2*R*6,label=FG),cex=5,direction="both",segment.size=0.25)
 
 
 

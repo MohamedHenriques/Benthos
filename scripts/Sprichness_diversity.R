@@ -20,7 +20,7 @@ db1<-db[-which(db$year==2020),]
 
 ###############################################################################################################################
 ### Checking differences in the mean total numb ind in each site based on boostrapping 71 samples 1000 times
-t1<-aggregate(db1$numb,by=list(site=db1$site,coreID=db1$coreID,low_taxa=db1$low_taxa),FUN=sum)
+t1<-aggregate(db2$numb,by=list(site=db2$site,coreID=db2$coreID,low_taxa=db2$taxaf),FUN=sum)
 t2<-dcast(t1,site+coreID~low_taxa)
 
 
@@ -28,7 +28,7 @@ set.seed(1)
 r=1000
 test<-array(NA,c(r,length(unique(t2$site))))
 site<-as.character(unique(t2$site))
-y=c("AB","A","E","BI","BR","AD")
+y=c("A","AB","BI","E","BR","AD")
 site1<-site[order(match(site,y))]
 colnames(test)<-site1
 
@@ -46,13 +46,13 @@ tot<-data.frame(site=site1,mean_num_ind=apply(test,2,mean),sd_num_ind=apply(test
 
 ############## Calcular diversidade Shannon-Wienner limitando o bootstrap a 71 cores e/ou 800 individuos por site
 ########### Diversidade per site #################
-dd<-aggregate(db1$numb,by=list(site=db1$site,coreID=db1$coreID,low_taxa=db1$low_taxa),FUN=sum)
-dd1<-dcast(dd,site+coreID~low_taxa)
+dd<-aggregate(db2$numb,by=list(site=db2$site,coreID=db2$coreID,low_taxa=db2$taxaf),FUN=sum)
+dd1<-reshape2::dcast(dd,site+coreID~low_taxa)
 
 R=1000
 set.seed(0)
 site<-as.character(unique(dd1$site))
-y=c("AB","A","E","BI","BR","AD")
+y=c("A","AB","BI","E","BR","AD")
 site1<-site[order(match(site,y))]
 d1<-array(NA, c(length(site1), 5))
 colnames(d1)<-c("site","Mean_Shannon-Wiener","SD","N_cores","N_ind")
@@ -274,14 +274,14 @@ for (x in 1:length(site1))
 
 ############## Calcular diversidade Shannon-Wienner limitando o bootstrap a 1 até 71 cores e/ou 800 individuos por site
 ########### Diversidade per site #################
-dd<-aggregate(db2$numb,by=list(site=db2$site,coreID=db2$coreID,low_taxa=db2$low_taxa),FUN=sum)
+dd<-aggregate(db2$numb,by=list(site=db2$site,coreID=db2$coreID,low_taxa=db2$taxaf),FUN=sum)
 dd1<-dcast(dd,site+coreID~low_taxa)
 table(dd1$site)
 
 R=1000
 set.seed(0)
 site<-as.character(unique(dd1$site))
-y=c("AB","A","E","BI","BR","AD")
+y=c("A","AB","BI","E","BR","AD")
 site1<-site[order(match(site,y))]
 d1<-array(NA, c(length(site1), 5))
 colnames(d1)<-c("site","Mean_Shannon_Wiener","SD","N_cores","N_ind")
@@ -348,7 +348,7 @@ str(A1)
 
 A1<-A1[-1,]
 unique(A1$N_cores[A1$site=="AD"])
-A1$site1<-factor(A1$site,levels=c("AD","BI","BR","E","A","AB"))
+A1$site1<-factor(A1$site,levels=c("A","AB","BI","E","BR","AD"))
 A1$N_ind<-as.numeric(A1$N_ind)
 A1$Mean_Shannon_Wiener<-as.numeric(A1$Mean_Shannon_Wiener)
 A1$SD<-as.numeric(A1$SD)
@@ -357,7 +357,8 @@ A1$N_cores<-as.numeric(A1$N_cores)
 ##Plot diversity estimates varying with sample size (core) in each site
 
 ggplot(A1,aes(x=N_cores,y=Mean_Shannon_Wiener,col=site1))+
-  geom_point()+
+  #geom_point()+
+  #stat_summary(fun=median,geom="line",aes(group=site1))+
   stat_smooth(geom="smooth",method="loess",se=F)+
   theme_bw()+
   scale_colour_manual(values=c("red","steelblue2","royalblue3","darkblue","limegreen","darkgreen"))+
@@ -376,7 +377,7 @@ ggplot(A1,aes(x=N_ind,y=Mean_Shannon_Wiener,col=site1))+
 
 ############## Calcular riqueza específica limitando o bootstrap a 1 até 71 cores por site
 ########### Riqueza específica por site #################
-dd<-aggregate(db1$numb,by=list(site=db1$site,coreID=db1$coreID,low_taxa=db1$low_taxa),FUN=sum)
+dd<-aggregate(db2$numb,by=list(site=db2$site,coreID=db2$coreID,low_taxa=db2$taxaf),FUN=sum)
 dd1<-dcast(dd,site+coreID~low_taxa)
 table(dd1$site)
 
@@ -385,7 +386,7 @@ table(dd1$site)
 R=1000
 set.seed(5)
 site<-as.character(unique(dd1$site))
-y=c("AB","A","E","BI","BR","AD")
+y=c("A","AB","BI","E","BR","AD")
 site1<-site[order(match(site,y))]
 d1<-array(NA, c(length(site1), 5))
 colnames(d1)<-c("site","Mean_Shannon_Wiener","SD","N_cores","N_ind")
@@ -447,7 +448,7 @@ colnames(B1)[2]<-"Mean_sp_richness"
 
 B1<-B1[-1,]
 unique(B1$N_cores[B1$site=="AD"])
-B1$site1<-factor(B1$site,levels=c("AD","BI","BR","E","A","AB"))
+B1$site1<-factor(B1$site,levels=c("A","AB","BI","E","BR","AD"))
 B1$N_ind<-as.numeric(B1$N_ind)
 B1$Mean_sp_richness<-as.numeric(B1$Mean_sp_richness)
 B1$SD<-as.numeric(B1$SD)
@@ -459,14 +460,16 @@ ggplot(B1,aes(x=N_cores,y=Mean_sp_richness,col=site1))+
   geom_point()+
   stat_smooth(geom="smooth",method="loess",se=F)+
   theme_bw()+
-  scale_colour_manual(values=c("red","steelblue2","royalblue3","darkblue","limegreen","darkgreen"))+
+  labs(x="Number of cores",y="Species richness")+
+  scale_colour_manual(values=p)+
   scale_x_continuous(breaks = seq(2,108,10))
 
 ggplot(B1,aes(x=N_ind,y=Mean_sp_richness,col=site1))+
   geom_point()+
   stat_smooth(geom="smooth",method="loess",se=F)+
   theme_bw()+
-  scale_colour_manual(values=c("red","steelblue2","royalblue3","darkblue","limegreen","darkgreen"))+
+  labs(x="Number of individuals",y="Species richness")+
+  scale_colour_manual(values=p)+
   scale_x_continuous(breaks = seq(0,3030,200))
 
 
@@ -474,7 +477,7 @@ ggplot(B1,aes(x=N_ind,y=Mean_sp_richness,col=site1))+
 R=1000
 set.seed(6)
 site<-as.character(unique(dd1$site))
-y=c("AB","A","E","BI","BR","AD")
+y=c("A","AB","BI","E","BR","AD")
 site1<-site[order(match(site,y))]
 s1<-array(NA, c(length(site1), 5))
 colnames(s1)<-c("site","Mean_sp_richness","SD","N_cores","N_ind")
@@ -514,6 +517,6 @@ for (x in 1:length(site1))
     s1[x,2]<-round(mean(rr),2)
     s1[x,3]<-round(sd(rr),2)
 }
-
+beep()
 
 
