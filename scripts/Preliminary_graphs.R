@@ -10,6 +10,22 @@ DB66<-read.table("data_out/db/Final_DB_lowtaxa_density_polyexcl_20201208.csv",he
 DB67<-read.table("data_out/db/Final_DB_family_density_polyexcl_20201208.csv",header=T,sep=";") ### created in script called Database_cleanup_joining
 DB68<-read.table("data_out/db/Final_DB_class1_density_polyexcl_20201208.csv",header=T,sep=";") ### created in script called Database_cleanup_joining
 
+DB68<-DB68[-which(DB68$class1=="Other"),]
+
+DB68$site1<-factor(DB68$site,levels=c("A","AB","BI","E","BR","AD"))
+DB68$month1<-factor(DB68$month,levels=c("10","11","12","1","2","3","4"))
+
+DB68$month2<-ifelse(DB68$month1==10,1,ifelse(DB68$month1==11,2,ifelse(DB68$month1==12,3,ifelse(DB68$month1==1,4,
+                    ifelse(DB68$month1==2,5,ifelse(DB68$month1==3,6,ifelse(DB68$month1==4,7,NA)))))))
+
+DB69<-fread("data_out/db/Final_DB_total_otherexc_density_polyexcl_20210202.csv")
+str(DB69)
+DB69$site1<-factor(DB69$site,levels=c("A","AB","BI","E","BR","AD"))
+DB69$month1<-factor(DB69$month,levels=c("10","11","12","1","2","3","4"))
+
+DB69$month2<-ifelse(DB69$month1==10,1,ifelse(DB69$month1==11,2,ifelse(DB69$month1==12,3,ifelse(DB69$month1==1,4,
+                    ifelse(DB69$month1==2,5,ifelse(DB69$month1==3,6,ifelse(DB69$month1==4,7,NA)))))))
+
 
 ggplot(DB68,aes(x=class1,y=dens,colour=site))+
   stat_summary(geom = "pointrange",position=position_dodge(width=0.4),size=1)+
@@ -49,6 +65,9 @@ colnames(DB88)[10]<-"dens"
 ##Order site by island
 DB88$site1<-factor(DB88$site,levels=c("AD","BI","BR","E","A","AB"))
 
+
+
+p<-c("#4DAF4A","darkgreen","#377EB8","#984EA3","#FF7F00","#E41A1C")
 
 ####plots de densidade total (todos os sitios todos os meses)
 
@@ -178,20 +197,60 @@ ggplot(DB8[DB8$cut=="Y",], aes(x=dens,y=reorder(family, dens),col=site1)) +
         panel.grid.major.y = element_line(colour="grey60", linetype="dashed"),
         axis.title = element_text(size=16,face="bold"))
 
-ggplot(DB88,aes(y=dens,x=reorder(class1, -dens),fill=site1)) +
-  stat_summary(geom="bar",size=1,position="dodge")+
-  scale_fill_manual(values=c("red","steelblue2","royalblue3","darkblue","limegreen","darkgreen"))+
+#######################Main graphs########################################################################
+##########################################################################################################
+
+
+###Spatial patterns
+ggplot(DB68,aes(y=dens,x=reorder(class1, -dens),fill=site1)) +
+  #stat_summary(geom="bar",size=1,position="dodge")+
+  geom_bar(stat="summary",position="dodge",fun.y="mean_se")+
+  stat_summary(fun.data = mean_se, geom = "errorbar",position="dodge")+
+  scale_fill_manual(values=p)+
   theme_bw() +
-  labs(x="Mean density (ind.m-2)",y="(Sub)class")+
+  labs(y="Mean density (ind.m-2)",x="(Sub)class")+
   theme(axis.text.x = element_text(size=16),
         axis.text.y = element_text(size=12),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.major.y = element_line(colour="grey60", linetype="dashed"),
-        axis.title = element_text(size=16,face="bold"))
+        axis.title = element_text(size=16,face="bold"))+
+  theme(legend.text=element_text(size=16),legend.title = element_text(size=20))
 
 
-### 
+### Temporal patterns
+ggplot(DB68,aes(y=dens,x=reorder(class1, -dens),fill=month1))+
+  #stat_summary(geom="bar",size=1,position="dodge")+
+  geom_bar(stat="summary",position="dodge")+
+  scale_fill_manual(values=c(p,"grey50"))+
+  stat_summary(fun.data = mean_se, geom = "errorbar",position="dodge")+
+  theme_bw() +
+  labs(y="Mean density (ind.m-2)",x="(Sub)class")+
+  theme(axis.text.x = element_text(size=16),
+        axis.text.y = element_text(size=12),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"),
+        axis.title = element_text(size=16,face="bold"))+
+  theme(legend.text=element_text(size=16),legend.title = element_text(size=20))
+
+### Temporal VS spatial patterns
+ggplot(DB68,aes(y=dens,x=site1,fill=month1))+
+  #stat_summary(geom="bar",size=1,position="dodge")+
+  geom_bar(stat="summary",position="dodge")+
+  stat_summary(fun.data = mean_se, geom = "errorbar",position="dodge")+
+  scale_fill_manual(values=c(p,"grey50"))+
+  theme_bw() +
+  labs(y="Mean density (ind.m-2)",x="(Sub)class")+
+  theme(axis.text.x = element_text(size=16),
+        axis.text.y = element_text(size=12),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"),
+        axis.title = element_text(size=16,face="bold"))+
+  theme(legend.text=element_text(size=16),legend.title = element_text(size=20))
+
+
 
 
 ggplot(DB8, aes(x=dens,y=reorder(family, dens))) +
@@ -241,7 +300,7 @@ unique(DB68$time3)
 
 DATES<-c("JAN18","FEB18","MAR18","OCT18","NOV18","DEC18","JAN19","FEB19","MAR19","APR19","OCT19","JAN20","FEB20","MAR20")
 names(DATES)<-levels(factor(unique(DB68$time1)))
-SITES<-c("Adonga","Bijante","Bruce","Escadinhas","Anrumai","Abu")
+SITES<-c("Anrumai","Abu","Bijante","Escadinhas","Bruce","Adonga")
 names(SITES)<-levels(factor(unique(DB68$site1)))
 #coll<-c("red","steelblue2","royalblue3","darkblue","limegreen","darkgreen")
 
@@ -267,16 +326,39 @@ names(DATES1)<-levels(factor(unique(DB68$month1)))
 
 ggplot(DB68, aes(x=dens,y=reorder(class1, dens),col=class1)) +
   #geom_point(size=3)+
-  stat_summary(size=1)+
+  stat_summary(size=0.8)+
   facet_grid(month1 ~ site1,scales="free",labeller = labeller(month1=DATES1,site1=SITES))+
   theme_bw() +
   labs(x="Density (ind.m-2)",y="Class (ordered by total density)")+
-  theme(axis.text.x = element_text(size=16),
+  scale_colour_brewer(palette="Dark2")+
+  theme(axis.text.x = element_text(size=12),
         axis.text.y = element_text(size=12),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
-        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"))+
-  scale_colour_brewer(palette="Dark2")
+        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"),
+        axis.title = element_text(size=16,face="bold"))+
+  theme(legend.text=element_text(size=16),legend.title = element_text(size=20))
+
+
+
+ggplot(DB68, aes(y=dens,x=month2)) +
+  stat_summary(size=0.8)+
+  geom_smooth(data=DBAD,aes(y=dens,x=month2),se=T, method="gam",formula=y~s(x,k=3))+
+  geom_smooth(data=DB68[site1=="A"|site1=="AB"],aes(y=dens,x=month2),se=T, method="gam",formula=y~s(x,k=6))+
+  geom_smooth(data=DB68[site1=="BI"|site1=="BR"|site1=="E"],aes(y=dens,x=month2),se=T, method="gam",formula=y~s(x,k=7))+
+  facet_grid(reorder(class1,-dens) ~ site1,scales="free_y",labeller = labeller(site1=SITES))+
+  scale_x_continuous(breaks=c(1:7),labels=DATES1)+
+  theme_bw() +
+  labs(y="Density (ind.m-2)",x="Months")+
+  theme(axis.text.x = element_text(size=12),
+        axis.text.y = element_text(size=18),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_line(colour="grey60", linetype="dashed"),
+        axis.title = element_text(size=16,face="bold"))+
+  theme(strip.text = element_text(face="bold", size=rel(1.15)))+
+  theme(legend.text=element_text(size=16),legend.title = element_text(size=20))
+
 
 
 

@@ -355,7 +355,7 @@ PPAB+
 distAB<-vegdist(dataAB1log,method="bray")
 perAB<-adonis(distAB~season,data=dataAB2,permutations=999)
 
-
+set.seed(150)
 dispersionAB<-betadisper(distAB,group=dataAB2$season)
 permutest(dispersionAB)
 
@@ -386,7 +386,7 @@ head(data.scoresCAP_AB)
 fitCAP_AB<-envfit(OM1AB,dataAB1log,permutations=999)
 arrowCAP_AB<-data.frame(fitCAP_AB$vectors$arrows,R=fitCAP_AB$vectors$r,P=fitCAP_AB$vectors$pvals)
 arrowCAP_AB$FG <- rownames(arrowCAP_AB)
-arrowarrowCAP_AB.p<-arrowCAP_AB[arrowCAP_AB$P<=0.05,]
+arrowarrowCAP_AB.p<-arrowCAP_AB[arrowCAP_AB$P<=0.05&arrowCAP_AB$R>=0.15,]
 
 PP_CAP_AB<-ggplot(data.scoresCAP_AB,aes(x=LD1,y=LD2))+
   geom_point(size=4,aes(colour=season))+
@@ -457,10 +457,12 @@ distBI<-vegdist(dataBI1log,method="bray")
 perBI<-adonis(distBI~season,data=dataBI2,permutations=999)
 perBI
 
+set.seed(401)
 dispersionBI<-betadisper(distBI,group=dataBI2$season)
 permutest(dispersionBI)
+TukeyHSD(dispersionBI)
 
-plot(dispersionBI,hull=F,ellipse=T,lwd=1)
+plot(dispersionBI,hull=T,ellipse=F,lwd=1)
 
 set.seed(400)
 pairwise.adonis(distBI,factors=dataBI2$season,p.adjust.m="bonferroni", perm=100000)
@@ -487,7 +489,7 @@ head(data.scoresCAP_BI)
 fitCAP_BI<-envfit(OM1BI,dataBI1log,permutations=999)
 arrowCAP_BI<-data.frame(fitCAP_BI$vectors$arrows,R=fitCAP_BI$vectors$r,P=fitCAP_BI$vectors$pvals)
 arrowCAP_BI$FG <- rownames(arrowCAP_BI)
-arrowarrowCAP_BI.p<-arrowCAP_BI[arrowCAP_BI$P<=0.05,]
+arrowarrowCAP_BI.p<-arrowCAP_BI[arrowCAP_BI$P<=0.05&arrowCAP_BI$R>=0.15,]
 
 PP_CAP_BI<-ggplot(data.scoresCAP_BI,aes(x=LD1,y=LD2))+
   geom_point(size=4,aes(colour=season))+
@@ -549,13 +551,15 @@ PPBR+
   ggrepel::geom_text_repel(data=arrowBR.p,aes(x=NMDS1*R*2.5,y=NMDS2*R*2.5,label=FG),cex=5,direction="both",segment.size=0.25)
 
 ###Permanova
-
+set.seed(501)
 distBR<-vegdist(dataBR1log,method="bray")
 perBR<-adonis(distBR~season,data=dataBR2,permutations=999)
 perBR
 
+set.seed(502)
 dispersionBR<-betadisper(distBR,group=dataBR2$season)
 permutest(dispersionBR)
+TukeyHSD(dispersionBR)
 
 plot(dispersionBR,hull=F,ellipse=T,lwd=1)
 
@@ -585,7 +589,7 @@ head(data.scoresCAP_BR)
 fitCAP_BR<-envfit(OM1BR,dataBR1log,permutations=999)
 arrowCAP_BR<-data.frame(fitCAP_BR$vectors$arrows,R=fitCAP_BR$vectors$r,P=fitCAP_BR$vectors$pvals)
 arrowCAP_BR$FG <- rownames(arrowCAP_BR)
-arrowarrowCAP_BR.p<-arrowCAP_BR[arrowCAP_BR$P<=0.05,]
+arrowarrowCAP_BR.p<-arrowCAP_BR[arrowCAP_BR$P<=0.05&arrowCAP_BR$R>=0.15,]
 
 PP_CAP_BR<-ggplot(data.scoresCAP_BR,aes(x=LD1,y=LD2))+
   geom_point(size=4,aes(colour=season))+
@@ -649,13 +653,16 @@ PPE+
   ggrepel::geom_text_repel(data=arrowE.p,aes(x=NMDS1*R*2.5,y=NMDS2*R*2.5,label=FG),cex=5,direction="both",segment.size=0.25)
 
 ###Permanova
-
+set.seed(601)
 distE<-vegdist(dataE1log,method="bray")
 perE<-adonis(distE~season,data=dataE2,permutations=999)
 perE
 
+set.seed(602)
 dispersionE<-betadisper(distE,group=dataE2$season)
 permutest(dispersionE)
+
+TukeyHSD(dispersionE)
 
 plot(dispersionE,hull=F,ellipse=T,lwd=1)
 
@@ -684,7 +691,7 @@ head(data.scoresCAP_E)
 fitCAP_E<-envfit(OM1E,dataE1log,permutations=999)
 arrowCAP_E<-data.frame(fitCAP_E$vectors$arrows,R=fitCAP_E$vectors$r,P=fitCAP_E$vectors$pvals)
 arrowCAP_E$FG <- rownames(arrowCAP_E)
-arrowarrowCAP_E.p<-arrowCAP_E[arrowCAP_E$P<=0.05,]
+arrowarrowCAP_E.p<-arrowCAP_E[arrowCAP_E$P<=0.05&arrowCAP_E$R>=0.15,]
 
 PP_CAP_E<-ggplot(data.scoresCAP_E,aes(x=LD1,y=LD2))+
   geom_point(size=4,aes(colour=season))+
@@ -783,7 +790,7 @@ head(data.scoresCAP_AD)
 fitCAP_AD<-envfit(OM1AD,dataAD1log,permutations=999)
 arrowCAP_AD<-data.frame(fitCAP_AD$vectors$arrows,R=fitCAP_AD$vectors$r,P=fitCAP_AD$vectors$pvals)
 arrowCAP_AD$FG <- rownames(arrowCAP_AD)
-arrowarrowCAP_AD.p<-arrowCAP_AD[arrowCAP_AD$P<=0.05,]
+arrowarrowCAP_AD.p<-arrowCAP_AD[arrowCAP_AD$P<=0.05&arrowCAP_AD$R>=0.15,]
 
 PP_CAP_AD<-ggplot(data.scoresCAP_AD,aes(x=LD1,y=LD2))+
   geom_point(size=4,aes(colour=season))+
@@ -862,6 +869,8 @@ perBeg<-adonis(distBeg~site,data=dataBeg2,permutations=999)
 set.seed(104)
 dispersionBeg<-betadisper(distBeg,group=dataBeg2$site)
 permutest(dispersionBeg)
+
+TukeyHSD(dispersionBeg)
 
 plot(dispersionBeg,hull=F,ellipse=T,lwd=1)
 
@@ -980,6 +989,8 @@ set.seed(110)
 dispersionMid<-betadisper(distMid,group=dataMid2$site)
 permutest(dispersionMid)
 
+TukeyHSD(dispersionMid)
+
 plot(dispersionMid,hull=F,ellipse=T,lwd=1)
 
 ##pairwise
@@ -1084,6 +1095,8 @@ perEnd<-adonis(distEnd~site,data=dataEnd2,permutations=999)
 set.seed(116)
 dispersionEnd<-betadisper(distEnd,group=dataEnd2$site)
 permutest(dispersionEnd)
+
+TukeyHSD(dispersionEnd)
 
 plot(dispersionEnd,hull=F,ellipse=T,lwd=1)
 

@@ -7,17 +7,15 @@ packs<-c("MASS","ggplot2","viridis","RColorBrewer","psych","reshape2","beepr","d
 lapply(packs,require,character.only=T)
 
 
-DB68<-fread("data_out/db/Final_DB_class1_density_polyexcl_20201208.csv") ### created in script called Database_cleanup_joining
-str(DB68)
+DB69<-fread("data_out/db/Final_DB_total_otherexc_density_polyexcl_20210202.csv") ### created in script called Database_cleanup_joining
+str(DB69)
 
 time<-c("10","11","12","1","2","3","4")
-DB68[,month1:=factor(month,levels=time)]
-DB68[,month2:=ifelse(month==10,1,ifelse(month==11,2,ifelse(month==12,3,ifelse(month==1,4,ifelse(month==2,5,ifelse(month==3,6,7))))))]
-DB68[,unique(month2)]
+DB69[,month1:=factor(month,levels=time)]
+DB69[,month2:=ifelse(month==10,1,ifelse(month==11,2,ifelse(month==12,3,ifelse(month==1,4,ifelse(month==2,5,ifelse(month==3,6,7))))))]
+DB69[,unique(month2)]
 
-DB68[class1=="Other",class1]
-
-DB<-DB68[!class1=="Other"]
+DB<-DB69
 
 ##Take a look at data
 ###site
@@ -37,11 +35,10 @@ ggplot(DB,aes(x=month2,y=dens,colour=site))+
   stat_smooth(method="loess",se=F)+
   theme_bw()
 
-D<-aggregate(DB$dens,by=list(site=DB$site,class1=DB$class1),FUN=mean)
-D1<-dcast(class1~site,data=D)
-
 
 #### GLM
+
+mean(DB$dens[DB$site1=="AD"&DB$month==10])
 
 ###### Include area of cores in DB
 
@@ -50,9 +47,14 @@ DB[,areacore]
 
 #######Overall
 
-m1<-glm.nb(x~site*month2+offset(log(areacore+1)),data=DB)
+DB$site1<-factor(DB$site,levels=c("AD","A","AB","BI","BR","E"))
+
+m1<-glm.nb(x~site1*month2+offset(log(areacore)+1),data=DB)
 summary(m1)
 anova(m1)
+unique(DB$month2)
+
+
 
 m1a<-update(m1,~.-site:month2)
 drop1(m1a, test="Chi")

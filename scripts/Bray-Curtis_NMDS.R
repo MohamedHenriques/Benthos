@@ -7,7 +7,7 @@ packs<-c("vegan","ggplot2","viridis","RColorBrewer","psych","reshape2","beepr","
 lapply(packs,require,character.only=T)
 
 ## Load database 
-DB66<-fread("data_out/db/Final_DB_lowtaxa_density_polyexcl_20210121.csv") ### created in script called Database_cleanup_joining
+DB66<-fread("data_out/db/Final_DB_lowtaxa_density_polyexcl_20210202.csv") ### created in script called Database_cleanup_joining
 str(DB66)
 
 
@@ -67,9 +67,12 @@ db1[,unique(taxaf)]
 db2<-db1[!year==2020]
 db2[year==2020]
 db2[,unique(taxaf)]
+write.table(db2,"Data_out/db/DB_community_analysis_island.csv",sep=";",row.names=F)
 
 ###aggregate and reshape database for analysis
 db3<-db2[,lapply(.SD,sum,na.rm=T),.SDcols="numb",by=c("site","month","coreID","taxaf")]
+write.table(db3,"Data_out/db/DB_community_analysis.csv",sep=";",row.names=F)
+
 DB<-dcast.data.table(db3,coreID+site+month~taxaf,value.var="numb")
 setkey(DB,coreID,site,month) ## isto define as variaveis core site e month como as variaveis de base para qualquer operação
 

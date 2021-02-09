@@ -3,24 +3,33 @@ graphics.off()
 rm(list=ls())
 
 ## Pacotes
-packs<-c("vegan","ggplot2","viridis","RColorBrewer","xlsx","psych","reshape2","beepr")
+packs<-c("vegan","ggplot2","viridis","RColorBrewer","xlsx","psych","reshape2","beepr","data.table")
 lapply(packs,require,character.only=T)
 
 
-DB66<-read.table("data_out/db/Final_DB_lowtaxa_density_polyexcl_20201208.csv",header=T,sep=";") ### created in script called Database_cleanup_joining
-str(DB66)
-unique(DB66$low_taxa[which(DB66$class1=="Other")])
+#DB66<-fread("data_out/db/Final_DB_lowtaxa_density_polyexcl_20210202.csv") ### created in script called Database_cleanup_joining
+#str(DB66)
+#unique(DB66$low_taxa[which(DB66$class1=="Other")])
 
-db<-DB66[-which(DB66$class1=="Other"),]
-unique(db$low_taxa)
+#db<-DB66[-which(class1=="Other")]
+#db[class1=="Other"]
+#unique(db$low_taxa)
 
-db1<-db[-which(db$year==2020),]
+#db[,.(table(low_taxa))]
 
+#sp<-db[,sum(numb),by=low_taxa]
+
+#db1<-db[-which(db$year==2020),]
+
+db2<-fread("Data_out/db/DB_community_analysis_island.csv")
+
+db3<-fread("Data_out/db/DB_community_analysis.csv")
+str(db3)
 
 
 ###############################################################################################################################
 ### Checking differences in the mean total numb ind in each site based on boostrapping 71 samples 1000 times
-t1<-aggregate(db2$numb,by=list(site=db2$site,coreID=db2$coreID,low_taxa=db2$taxaf),FUN=sum)
+t1<-aggregate(db3$numb,by=list(site=db3$site,coreID=db3$coreID,low_taxa=db3$taxaf),FUN=sum)
 t2<-dcast(t1,site+coreID~low_taxa)
 
 
@@ -46,7 +55,7 @@ tot<-data.frame(site=site1,mean_num_ind=apply(test,2,mean),sd_num_ind=apply(test
 
 ############## Calcular diversidade Shannon-Wienner limitando o bootstrap a 71 cores e/ou 800 individuos por site
 ########### Diversidade per site #################
-dd<-aggregate(db2$numb,by=list(site=db2$site,coreID=db2$coreID,low_taxa=db2$taxaf),FUN=sum)
+dd<-aggregate(db3$numb,by=list(site=db3$site,coreID=db3$coreID,low_taxa=db3$taxaf),FUN=sum)
 dd1<-reshape2::dcast(dd,site+coreID~low_taxa)
 
 R=1000
@@ -104,7 +113,7 @@ for (x in 1:length(site1))
 
 
 ### Checking differences in the mean total numb ind in each island based on boostrapping 108 samples 1000 times
-i1<-aggregate(db1$numb,by=list(island=db1$island,coreID=db1$coreID,low_taxa=db1$low_taxa),FUN=sum)
+i1<-aggregate(db2$numb,by=list(island=db2$island,coreID=db2$coreID,low_taxa=db2$taxaf),FUN=sum)
 i2<-dcast(i1,island+coreID~low_taxa)
 
 
@@ -377,7 +386,7 @@ ggplot(A1,aes(x=N_ind,y=Mean_Shannon_Wiener,col=site1))+
 
 ############## Calcular riqueza específica limitando o bootstrap a 1 até 71 cores por site
 ########### Riqueza específica por site #################
-dd<-aggregate(db2$numb,by=list(site=db2$site,coreID=db2$coreID,low_taxa=db2$taxaf),FUN=sum)
+dd<-aggregate(db3$numb,by=list(site=db3$site,coreID=db3$coreID,low_taxa=db3$taxaf),FUN=sum)
 dd1<-dcast(dd,site+coreID~low_taxa)
 table(dd1$site)
 
@@ -518,5 +527,17 @@ for (x in 1:length(site1))
     s1[x,3]<-round(sd(rr),2)
 }
 beep()
+
+
+
+########Total species richenss in each site
+y=c("A","AB","BI","E","BR","AD")
+site1<-site[order(match(site,y))]
+totsp<-array(NA, c(length(site1),2))
+
+for(i in 1:length(site1)){
+  totsp[i,1]<-site1[i]
+  totsp[i,2]<-db3[site==site1[i]&numb>0,length(unique(taxaf))]
+}
 
 
