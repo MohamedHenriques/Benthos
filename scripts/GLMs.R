@@ -17,6 +17,50 @@ DB69[,unique(month2)]
 
 DB<-DB69
 
+DB68<-fread("data_out/db/Final_DB_class1_density_polyexcl_20210202.csv")
+
+DB68[,month1:=factor(month,levels=time)]
+DB68[,month2:=ifelse(month==10,1,ifelse(month==11,2,ifelse(month==12,3,ifelse(month==1,4,ifelse(month==2,5,ifelse(month==3,6,7))))))]
+DB68[,unique(month2)]
+
+DB1<-DB68
+str(DB)
+
+sum(DB$dens)
+
+tot<-mean(DB1[class1=="Bivalvia",dens])+
+mean(DB1[class1=="Polychaeta_sedentaria",dens])+
+mean(DB1[class1=="Polychaeta_errantia",dens])+
+mean(DB1[class1=="Malacostraca",dens])+
+mean(DB1[class1=="Gastropoda",dens])+
+mean(DB1[class1=="Other",dens])
+
+DB1[class1=="Bivalvia",dens==0]
+
+b<-mean(DB1[class1=="Bivalvia",dens])/tot*100
+ps<-mean(DB1[class1=="Polychaeta_sedentaria",dens])/tot*100
+pe<-mean(DB1[class1=="Polychaeta_errantia",dens])/tot*100
+m<-mean(DB1[class1=="Malacostraca",dens])/tot*100
+g<-mean(DB1[class1=="Gastropoda",dens])/tot*100
+o<-mean(DB1[class1=="Other",dens])/tot*100
+sum(b+ps+pe+m+g+o)
+
+tot1<-sum(DB1[class1=="Bivalvia",dens])+
+  sum(DB1[class1=="Polychaeta_sedentaria",dens])+
+  sum(DB1[class1=="Polychaeta_errantia",dens])+
+  sum(DB1[class1=="Malacostraca",dens])+
+  sum(DB1[class1=="Gastropoda",dens])+
+  sum(DB1[class1=="Other",dens])
+
+b1<-sum(DB1[class1=="Bivalvia",dens])/tot1*100
+ps1<-sum(DB1[class1=="Polychaeta_sedentaria",dens])/tot1*100
+pe1<-sum(DB1[class1=="Polychaeta_errantia",dens])/tot1*100
+m1<-sum(DB1[class1=="Malacostraca",dens])/tot1*100
+g1<-sum(DB1[class1=="Gastropoda",dens])/tot1*100
+o1<-sum(DB1[class1=="Other",dens])/tot1*100
+sum(b1+ps1+pe1+m1+g1+o1)
+
+
 ##Take a look at data
 ###site
 ggplot(DB,aes(x=class1,y=dens,colour=site))+
@@ -38,20 +82,27 @@ ggplot(DB,aes(x=month2,y=dens,colour=site))+
 
 #### GLM
 
-mean(DB$dens[DB$site1=="AD"&DB$month==10])
+DB[site=="E",mean(dens)]
 
 ###### Include area of cores in DB
 
 DB[,areacore:=ifelse(site=="AD",0.0113,0.00785)]
 DB[,areacore]
 
+###### Include area of cores in DB1
+
+DB1[,areacore:=ifelse(site=="AD",0.0113,0.00785)]
+DB1[,areacore]
+
+
 #######Overall
 
 DB$site1<-factor(DB$site,levels=c("AD","A","AB","BI","BR","E"))
 
-m1<-glm.nb(x~site1*month2+offset(log(areacore)+1),data=DB)
+m1<-glm.nb(x~site1*month2+offset(log(areacore)),data=DB)
 summary(m1)
-anova(m1)
+anova(m1,test="Chisq")
+anova.glm(m1)
 unique(DB$month2)
 
 
@@ -63,9 +114,9 @@ AIC(m1,m1a)
 summary(m1a)
 
 ######## Bivalves
-dbb<-DB[class1=="Bivalvia"]
+dbb<-DB1[class1=="Bivalvia"]
 
-m2<-glm.nb(x~site*month2+offset(log(areacore+1)),data=dbb)
+m2<-glm.nb(x~site*month2+offset(log(areacore)),data=dbb)
 summary(m2)
 anova(m2)
 m2a<-update(m2,~.-site:month2)
@@ -122,9 +173,9 @@ ggplot()+
 
 
 ######## errant polychaetes
-dbpe<-DB[class1=="Polychaeta_errantia"]
+dbpe<-DB1[class1=="Polychaeta_errantia"]
 
-m3<-glm.nb(x~site*month2+offset(log(areacore+1)),data=dbpe)
+m3<-glm.nb(x~site*month2+offset(log(areacore)),data=dbpe)
 summary(m3)
 anova(m3)
 m3a<-update(m3,~.-site:month2)
@@ -158,9 +209,9 @@ ggplot()+
 
 ### sed poly
 
-dbps<-DB[class1=="Polychaeta_sedentaria"]
+dbps<-DB1[class1=="Polychaeta_sedentaria"]
 
-m4<-glm.nb(x~site*month2+offset(log(areacore+1)),data=dbps)
+m4<-glm.nb(x~site*month2+offset(log(areacore)),data=dbps)
 summary(m4)
 anova(m4)
 m4a<-update(m4,~.-site:month2)
@@ -194,9 +245,9 @@ ggplot()+
 ### Gastropoda
 
 ######## errant polychaetes
-dbg<-DB[class1=="Gastropoda"]
+dbg<-DB1[class1=="Gastropoda"]
 
-m5<-glm.nb(x~site*month2+offset(log(areacore+1)),data=dbg)
+m5<-glm.nb(x~site*month2+offset(log(areacore)),data=dbg)
 summary(m5)
 anova(m5)
 m5a<-update(m5,~.-site:month2)
@@ -230,21 +281,21 @@ ggplot()+
 
 #### Malacostraca
 
-dbm<-DB[class1=="Malacostraca"]
+dbm<-DB1[class1=="Malacostraca"]
 
-m5<-glm.nb(x~site*month2+offset(log(areacore+1)),data=dbm)
-summary(m5)
-anova(m5)
-m5a<-update(m5,~.-site:month2)
-drop1(m5a,test="Chi")
-anova(m5,m5a)
-AIC(m5,m5a)
-summary(m5)
+m6<-glm.nb(x~site*month2+offset(log(areacore)),data=dbm)
+summary(m6)
+anova(m6)
+m6a<-update(m6,~.-site:month2)
+drop1(m6a,test="Chi")
+anova(m6,m6a,test="Chisq")
+AIC(m6,m6a)
+summary(m6)
 
-residualPlots(m5)
+residualPlots(m6)
 
 
-est<-cbind(coef(m5),confint(m5))
+est<-cbind(coef(m6),confint(m6))
 exp(est)
 
 ###Predicted values
@@ -252,7 +303,7 @@ exp(est)
 newdata<-expand.grid(month2=seq(from=range(dbm$month2)[1], to=range(dbm$month2)[2],length=length(unique(dbm$month2))),
                      site=factor(c(1:6),labels=levels(factor(dbm$site))))
 newdata$areacore<-ifelse(newdata$site=="AD",log(unique(dbm$areacore[dbm$site=="AD"])+1),log(unique(dbm$areacore[dbm$site!="AD"])+1))
-newdata$x<-predict(m5,newdata,type="response")
+newdata$x<-predict(m6,newdata,type="response")
 
 ggplot()+
   geom_point(data=dbm,aes(x=month2, y=x, col=site),  size=2, alpha=0.7,position=position_dodge(width=0.4))+
