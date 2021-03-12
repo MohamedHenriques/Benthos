@@ -21,7 +21,7 @@ lapply(packs,require,character.only=T)
 
 #db1<-db[-which(db$year==2020),]
 
-db2<-fread("Data_out/db/DB_community_analysis_island.csv")
+db2<-fread("Data_out/db/DB_community_analysis_island_20210312.csv")
 
 db3<-fread("Data_out/db/DB_community_analysis.csv")
 str(db3)
@@ -540,4 +540,58 @@ for(i in 1:length(site1)){
   totsp[i,2]<-db3[site==site1[i]&numb>0,length(unique(taxaf))]
 }
 
+db3[numb>0,length(unique(taxaf))]
+sps<-db3[,sum(numb), by=taxaf]
 
+##########################################################
+#########################################################################
+##################################################################################
+##Accumulation curve
+
+dd<-aggregate(db3$numb,by=list(site=db3$site,coreID=db3$coreID,low_taxa=db3$taxaf),FUN=sum)
+dd1<-dcast(dd,site+coreID~low_taxa)
+table(dd1$site)
+dd1$site1<-factor(dd1$site,levels=c("A","AB","BI","E","BR","AD"))
+
+anrumai<-dd1[which(dd1$site=="A"),]
+abu<-dd1[which(dd1$site=="AB"),]
+bijante<-dd1[which(dd1$site=="BI"),]
+escadinhas<-dd1[which(dd1$site=="E"),]
+bruce<-dd1[which(dd1$site=="BR"),]
+adonga<-dd1[which(dd1$site=="AD"),]
+
+##Species accumulation plot
+acc_an<-specaccum(anrumai[,3:(ncol(anrumai)-1)],method="random",permutations=1000,conditioned=T,gamma="jack1",random=F,ci.type="bar")
+acc_ab<-specaccum(abu[,3:(ncol(anrumai)-1)],method="random",permutations=1000,conditioned=T,gamma="jack1",random=F,ci.type="bar")
+acc_bi<-specaccum(bijante[,3:(ncol(bijante)-1)],method="random",permutations=1000,conditioned=T,gamma="jack1",random=F,ci.type="bar")
+acc_es<-specaccum(escadinhas[,3:(ncol(escadinhas)-1)],method="random",permutations=1000,conditioned=T,gamma="jack1",random=F,ci.type="bar")
+acc_br<-specaccum(bruce[,3:(ncol(bruce)-1)],method="random",permutations=1000,conditioned=T,gamma="jack1",random=F,ci.type="bar")
+acc_ad<-specaccum(adonga[,3:(ncol(adonga)-1)],method="random",permutations=1000,conditioned=T,gamma="jack1",random=F,ci.type="bar")
+plot(acc_ad,ci.type="bar",ci.lty=0,ci.col=p[6],col=p[6],lwd=3,xlab = "Number of cores",ylab="Species richness",cex.lab=1.5,cex.axis=1.5,ylim=c(0,60))
+plot(acc_ab,ci.type="bar",ci.lty=0, ci.col=p[2],col=p[2],lwd=3,add=T)
+plot(acc_bi,ci.type="bar",ci.lty=0, ci.col=p[3],col=p[3],lwd=3,add=T)
+plot(acc_es,ci.type="bar",ci.lty=0, ci.col=p[4],col=p[4],lwd=3,add=T)
+plot(acc_br,ci.type="bar",ci.lty=0, ci.col=p[5],col=p[5],lwd=3,add=T)
+plot(acc_an,ci.type="bar",ci.lty=0, ci.col=p[1],col=p[1],lwd=3,add=T)
+
+
+###Species rarefaction plot
+rar_an<-specaccum(anrumai[,3:(ncol(anrumai)-1)],method="rarefaction",permutations=1000,conditioned=T,gamma="jack1",random=F,ci.type="bar")
+rar_ab<-specaccum(abu[,3:(ncol(anrumai)-1)],method="rarefaction",permutations=1000,conditioned=T,gamma="jack1",random=F,ci.type="bar")
+rar_bi<-specaccum(bijante[,3:(ncol(bijante)-1)],method="rarefaction",permutations=1000,conditioned=T,gamma="jack1",random=F,ci.type="bar")
+rar_es<-specaccum(escadinhas[,3:(ncol(escadinhas)-1)],method="rarefaction",permutations=1000,conditioned=T,gamma="jack1",random=F,ci.type="bar")
+rar_br<-specaccum(bruce[,3:(ncol(bruce)-1)],method="rarefaction",permutations=1000,conditioned=T,gamma="jack1",random=F,ci.type="bar")
+rar_ad<-specaccum(adonga[,3:(ncol(adonga)-1)],method="rarefaction",permutations=1000,conditioned=T,gamma="jack1",random=F,ci.type="bar")
+plot(rar_ad,ci.type="bar",ci.lty=0,ci.col=p[6],col=p[6],lwd=3,xlab = "Number of individuals",ylab="Species richness",xvar="individuals",cex.lab=1.5,cex.axis=1.5,ylim=c(0,60))
+plot(rar_ab,ci.type="bar",ci.lty=0, ci.col=p[2],col=p[2],lwd=3,add=T,xvar="individuals",cex.lab=1.5,cex.axis=1.5)
+plot(rar_bi,ci.type="bar",ci.lty=0, ci.col=p[3],col=p[3],lwd=3,add=T,xvar="individuals",cex.lab=1.5,cex.axis=1.5)
+plot(rar_es,ci.type="bar",ci.lty=0, ci.col=p[4],col=p[4],lwd=3,add=T,xvar="individuals",cex.lab=1.5,cex.axis=1.5)
+plot(rar_br,ci.type="bar",ci.lty=0, ci.col=p[5],col=p[5],lwd=3,add=T,xvar="individuals",cex.lab=1.5,cex.axis=1.5)
+plot(rar_an,ci.type="bar",ci.lty=0, ci.col=p[1],col=p[1],lwd=3,add=T,xvar="individuals",cex.lab=1.5,cex.axis=1.5)
+
+
+
+######
+
+test<-rarefy(adonga[,3:(ncol(adonga)-1)],sample=rrmax,se=T)
+rrmax<-min(rowSums(adonga[,3:(ncol(adonga)-1)]))

@@ -8,12 +8,12 @@ lapply(packs,require,character.only=T)
 
 p<-c("#4DAF4A","darkgreen","#377EB8","#984EA3","#FF7F00","#E41A1C")
 
-DB1<-fread("Data_out/db/DB_multianal_20210127.csv")
+DB1<-fread("Data_out/db/DB_multianal_20210127.csv") ##Data created in script Bray-Curtis_NMDS
 
 ##Prepare data and remove rows with zeros in all columns
 
 data<-DB1[apply(DB1[,!(1:3)],1,sum)!=0] ### Bray curtis does not work with empty cores. So we have to remove all of them
-
+table(apply(data[,!c(1:3,89)], 2, sum)==0)
 
 data[,season:="season"][month==10|month==11,season:="begining"][month==12|month==1|month==2,season:="mid"][month==3|month==4,season:="end"]
 data[,season:=factor(season, levels=c("begining","mid","end"))]
@@ -47,11 +47,6 @@ m2[,p95:="N"][1:35,p95:="Y"]
 m2[,p75:="N"][1:14,p75:="Y"]
 m2[,p1p:="N"][1:22,p1p:="Y"]
 
-##############NMDS and bray curtis
-
-table(is.na(data1)) ###check if there is any NAs
-
-###subsetting for reduced sps numb
 
 ####### 75%
 nam<-m2[p75=="N",sp]
@@ -134,7 +129,7 @@ set.seed(118)
 system.time(
   OM1Tot<-CAPdiscrim(data1log~site*season,data=data2,dist="bray",axes=3,m=0,add=F, permutations = 1000)
 )
-beep()
+beep(3)
 summary(OM1Tot)
 OM1Tot$manova
 OM1Tot$m
@@ -272,7 +267,7 @@ pairwise.adonis(distA,factors=dataA2$season,p.adjust.m="bonferroni", perm=100000
 system.time(
   OM1<-CAPdiscrim(dataA1log~season,data=dataA2,dist="bray",axes=3,m=0,add=F, permutations = 2000)
 )
-beep()
+beep(3)
 summary(OM1)
 OM1$manova
 
@@ -318,7 +313,7 @@ dataAB1log<-log(dataAB1+1)
 #### run NMDS
 set.seed(1)
 NMDSAB<-metaMDS(dataAB1log,distance="bray",k=3,trymax=1000,autotransform = F)
-beep()
+beep(3)
 
 #stressplot(NMDSAB)
 
@@ -370,7 +365,7 @@ pairwise.adonis(distAB,factors=dataAB2$season,p.adjust.m="bonferroni", perm=1000
 system.time(
   OM1AB<-CAPdiscrim(dataAB1log~season,data=dataAB2,dist="bray",axes=3,m=0,add=F, permutations = 1000)
 )
-beep()
+beep(3)
 summary(OM1AB)
 OM1AB$manova
 
@@ -895,9 +890,10 @@ set.seed(105)
 system.time(
   OM1Beg<-CAPdiscrim(dataBeg1log~site,data=dataBeg2,dist="bray",axes=3,m=0,add=F, permutations = 1000)
 )
-beep()
+beep(3)
 summary(OM1Beg)
 OM1Beg$manova
+OM1Beg$m
 
 #extract CAP scores (x and y coordinates)
 data.scoresCAP_Beg = as.data.table(scores(OM1Beg))
@@ -909,10 +905,11 @@ head(data.scoresCAP_Beg)
 
 ###fit sps data in
 set.seed(106)
-fitCAP_Beg<-envfit(OM1Beg,dataBeg1log,permutations=999)
+fitCAP_Beg<-envfit(OM1Beg,dataBeg1log,permutations=10000)
 arrowCAP_Beg<-data.frame(fitCAP_Beg$vectors$arrows,R=fitCAP_Beg$vectors$r,P=fitCAP_Beg$vectors$pvals)
 arrowCAP_Beg$FG <- rownames(arrowCAP_Beg)
 arrowCAP_Beg.p<-arrowCAP_Beg[arrowCAP_Beg$P<=0.05&arrowCAP_Beg$R>=0.15,]
+#arrowCAP_Beg.p<-arrowCAP_Beg[arrowCAP_Beg$P<=0.05,]
 
 PP_CAP_Beg<-ggplot(data.scoresCAP_Beg,aes(x=LD1,y=LD2))+
   geom_point(size=4,aes(colour=site))+
@@ -1002,9 +999,9 @@ pairwise.adonis(distMid,factors=dataMid2$site,p.adjust.m="bonferroni", perm=1000
 ###
 set.seed(111)
 system.time(
-  OM1Mid<-CAPdiscrim(dataMid1log~site,data=dataMid2,dist="bray",axes=3,m=0,add=F, permutations = 1000)
+  OM1Mid<-CAPdiscrim(dataMid1log~site,data=dataMid2,dist="bray",axes=3,m=0,add=F, permutations = 10000)
 )
-beep()
+beep(3)
 summary(OM1Mid)
 OM1Mid$manova
 OM1Mid$m
@@ -1019,10 +1016,11 @@ head(data.scoresCAP_Mid)
 
 ###fit sps data in Mid
 set.seed(112)
-fitCAP_Mid<-envfit(OM1Mid,dataMid1log,permutations=999)
+fitCAP_Mid<-envfit(OM1Mid,dataMid1log,permutations=10000)
 arrowCAP_Mid<-data.frame(fitCAP_Mid$vectors$arrows,R=fitCAP_Mid$vectors$r,P=fitCAP_Mid$vectors$pvals)
 arrowCAP_Mid$FG <- rownames(arrowCAP_Mid)
 arrowarrowCAP_Mid.p<-arrowCAP_Mid[arrowCAP_Mid$P<=0.05&arrowCAP_Mid$R>=0.15,]
+#arrowarrowCAP_Mid.p<-arrowCAP_Mid[arrowCAP_Mid$P<=0.05,]
 
 PP_CAP_Mid<-ggplot(data.scoresCAP_Mid,aes(x=LD1,y=LD2))+
   geom_point(size=4,aes(colour=site))+
@@ -1108,11 +1106,14 @@ pairwise.adonis(distEnd,factors=dataEnd2$site,p.adjust.m="bonferroni", perm=1000
 
 ### CAP End
 ###
+
+test1<-dataEnd1log[-which(dataEnd2$site=="AD")]
+test2<-dataEnd2[-which(dataEnd2$site=="AD")]
 set.seed(117)
 system.time(
-  OM1End<-CAPdiscrim(dataEnd1log~site,data=dataEnd2,dist="bray",axes=3,m=0,add=F, permutations = 1000)
+  OM1End<-CAPdiscrim(test1~site,data=test2,dist="bray",axes=3,m=0,add=F, permutations = 10000)
 )
-beep()
+beep(4)
 summary(OM1End)
 OM1End$manova
 OM1End$m
@@ -1127,10 +1128,11 @@ head(data.scoresCAP_End)
 
 ###fit sps data in End
 set.seed(118)
-fitCAP_End<-envfit(OM1End,dataEnd1log,permutations=999)
+fitCAP_End<-envfit(OM1End,dataEnd1log,permutations=10000)
 arrowCAP_End<-data.frame(fitCAP_End$vectors$arrows,R=fitCAP_End$vectors$r,P=fitCAP_End$vectors$pvals)
 arrowCAP_End$FG <- rownames(arrowCAP_End)
 arrowarrowCAP_End.p<-arrowCAP_End[arrowCAP_End$P<=0.05&arrowCAP_End$R>=0.15,]
+#arrowarrowCAP_End.p<-arrowCAP_End[arrowCAP_End$P<=0.05,]
 
 PP_CAP_End<-ggplot(data.scoresCAP_End,aes(x=LD1,y=LD2))+
   geom_point(size=4,aes(colour=site))+

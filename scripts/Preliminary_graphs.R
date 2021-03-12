@@ -3,12 +3,12 @@ graphics.off()
 rm(list=ls())
 
 ## Pacotes
-packs<-c("gridExtra","vegan","ggplot2","viridis","effects","RColorBrewer","xlsx","psych","reshape2","tidyr")
+packs<-c("gridExtra","vegan","ggplot2","viridis","effects","RColorBrewer","xlsx","psych","reshape2","tidyr","data.table")
 lapply(packs,require,character.only=T)
 
-DB66<-read.table("data_out/db/Final_DB_lowtaxa_density_polyexcl_20201208.csv",header=T,sep=";") ### created in script called Database_cleanup_joining
-DB67<-read.table("data_out/db/Final_DB_family_density_polyexcl_20201208.csv",header=T,sep=";") ### created in script called Database_cleanup_joining
-DB68<-read.table("data_out/db/Final_DB_class1_density_polyexcl_20201208.csv",header=T,sep=";") ### created in script called Database_cleanup_joining
+DB66<-read.table("data_out/db/Final_DB_lowtaxa_density_polyexcl_20210202.csv",header=T,sep=";") ### created in script called Database_cleanup_joining
+DB67<-read.table("data_out/db/Final_DB_family_density_polyexcl_20210202.csv",header=T,sep=";") ### created in script called Database_cleanup_joining
+DB68<-read.table("data_out/db/Final_DB_class1_density_polyexcl_20210202.csv",header=T,sep=";") ### created in script called Database_cleanup_joining
 
 DB68<-DB68[-which(DB68$class1=="Other"),]
 
@@ -206,9 +206,10 @@ ggplot(DB68,aes(y=dens,x=reorder(class1, -dens),fill=site1)) +
   #stat_summary(geom="bar",size=1,position="dodge")+
   geom_bar(stat="summary",position="dodge",fun.y="mean_se")+
   stat_summary(fun.data = mean_se, geom = "errorbar",position="dodge")+
-  scale_fill_manual(values=p)+
+  
   theme_bw() +
-  labs(y="Mean density (ind.m-2)",x="(Sub)class")+
+  labs(y="Mean density (ind.m-2)",x="(Sub)class",fill="Site")+
+  scale_fill_manual(values=p,labels=c("Anrumai", "Abu", "Bijante","Escadinhas","Bruce","Adonga"))+
   theme(axis.text.x = element_text(size=16),
         axis.text.y = element_text(size=12),
         panel.grid.major.x = element_blank(),

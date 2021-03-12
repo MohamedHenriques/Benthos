@@ -174,6 +174,7 @@ ggplot()+
 
 ######## errant polychaetes
 dbpe<-DB1[class1=="Polychaeta_errantia"]
+dbpe[,site1:=factor(site,levels=c("AB","AD","A","BI","BR","E"))]
 
 m3<-glm.nb(x~site*month2+offset(log(areacore)),data=dbpe)
 summary(m3)
