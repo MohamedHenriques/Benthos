@@ -23,7 +23,7 @@ lapply(packs,require,character.only=T)
 
 db2<-fread("Data_out/db/DB_community_analysis_island_20210312.csv")
 
-db3<-fread("Data_out/db/DB_community_analysis.csv")
+db3<-fread("Data_out/db/DB_community_analysis_20210312.csv")
 str(db3)
 
 
@@ -63,221 +63,94 @@ set.seed(0)
 site<-as.character(unique(dd1$site))
 y=c("A","AB","BI","E","BR","AD")
 site1<-site[order(match(site,y))]
-d1<-array(NA, c(length(site1), 5))
-colnames(d1)<-c("site","Mean_Shannon-Wiener","SD","N_cores","N_ind")
+d1<-array(NA, c(R, 4))
+colnames(d1)<-c("site","Shannon_Wiener","N_cores","N_ind")
+myList<-vector("list",c(length(site1)))
+names(myList)<-site1
 
 cores<-71
 sum(tt1)
-dens1<-function(x){x/0.00866}
-dens2<-function(x){x/0.00817}
+dens1<-function(x){x/0.0113}
+dens2<-function(x){x/0.00785}
 
 for (x in 1:length(site1))
 {
   print(site1[x])
-  d1[x,1]<-site1[x]
   tt<-dd1[dd1$site==site1[x],-(1:2)]
-  tt1<-tt[sample(1:nrow(tt), 1, replace=T),]
-  lim<-sum(tt1)
-  for (i in 2:cores) {
-    print(paste("starting core",i))
-    if(lim<=800){
-    tt1[i,]<-tt[sample(1:nrow(tt), 1, replace=T),]
+  
+  for (y in 1:R){
+    print(paste("Starting",y,"in",site[x]))
+    d1[y,1]<-site1[x]
+    
+    ##Creating random sample of size "cores" from the original database of the site
+    tt1<-tt[sample(1:nrow(tt), 1, replace=T),]
     lim<-sum(tt1)
+    for (i in 2:cores) {
+      if(lim<=800){
+      tt1[i,]<-tt[sample(1:nrow(tt), 1, replace=T),]
+      lim<-sum(tt1)
     } else{
     print(paste("sampling in",site1[x],"reached",lim,"ind at core",i))
     }
   }
-  d1[x,4]<-nrow(tt1)
-  d1[x,5]<-lim
-  print(paste("starting diversity calculations in",site1[x]))
-  ### calculating density
-  if(site1[x]=="AD"){
-    tt2<-sapply(tt1,dens1)
+    
+    d1[y,3]<-nrow(tt1)
+    d1[y,4]<-lim
+    
+    ##Diversity calculations
+    ### calculating density
+    if(site1[x]=="AD"){
+      tt2<-sapply(tt1,dens1)
   } else {
-    tt2<-sapply(tt1,dens2)
+      tt2<-sapply(tt1,dens2)
   }
-  rr<-array(NA,R)
-  for (y in 1:R)
-  {
-    sel<-sample(1:nrow(tt2), nrow(tt2), replace=T)
-    f<-apply(tt2[sel,], 2, mean)
+    
+    f<-apply(tt2, 2, mean)
     f1<-f[-c(which(f==0))]
-    rr[y]<-sum(f1/sum(f1)*log(f1/sum(f1)))*-1
+    d1[y,2]<-sum(f1/sum(f1)*log(f1/sum(f1)))*-1
   }
-  d1[x,2]<-round(mean(rr),2)
-  d1[x,3]<-round(sd(rr),2)
+  
+  myList[[x]]<-d1
+
+}
+beep(3)
+
+
+##Calculate mean and sd of the results of bootstrap
+myList[[1]]
+
+DIV1<-data.frame(site=NA,Shannon_Wiener=NA,N_cores=NA,N_ind=NA)
+names(DIV1)
+
+for (i in 1:length(myList)){
+  DIV2<-data.frame(myList[[i]])
+  DIV1<-rbind(DIV1,DIV2)
 }
 
+DIV11<-DIV1[-1,]
+str(DIV11)
+DIV11$Shannon_Wiener<-as.numeric(DIV11$Shannon_Wiener)
+DIV11$N_cores<-as.numeric(DIV11$N_cores)
+DIV11$N_ind<-as.numeric(DIV11$N_ind)
 
+DIV<-data.table(DIV11)
+DIV[,lapply(.SD,mean),by=site] ##get means
+DIV[,lapply(.SD,sd),by=site] ## get sd
 
+###Overrall diveristy
+dd1ad<-dd1[dd1$site=="AD",]
+dd1ot<-dd1[-c(which(dd1$site=="AD")),]
 
+gg1<-data.frame(sapply(dd1ad[,-c(1:2)],dens1))
+gg2<-data.frame(sapply(dd1ot[,-c(1:2)],dens2))
 
-### Checking differences in the mean total numb ind in each island based on boostrapping 108 samples 1000 times
-i1<-aggregate(db2$numb,by=list(island=db2$island,coreID=db2$coreID,low_taxa=db2$taxaf),FUN=sum)
-i2<-dcast(i1,island+coreID~low_taxa)
+gg<-rbind(gg1,gg2)
+str(gg)
 
+fg<-apply(gg, 2, mean)
+f1g<-fg[-c(which(fg==0))]
+sum(fg/sum(fg)*log(fg/sum(fg)))*-1
 
-set.seed(2)
-r=1000
-test<-array(NA,c(r,length(unique(i2$island))))
-island<-as.character(unique(i2$island))
-y=c("Orango","Formosa","Bubaque")
-island1<-island[order(match(island,y))]
-colnames(test)<-island1
-
-for (i in 1:length(island1)) {
-  print(island1[i])
-  i3<-i2[which(i2$island==island1[i]),]
-  for (j in 1:r) {
-    s<-i3[sample(1:nrow(i3),108,replace=T),]
-    s1<-apply(s[,-c(1:2)],2,sum)
-    test[j,i]<-sum(s1)
-  }
-}
-tot1<-data.frame(island=island1,mean_num_ind=apply(test,2,mean),sd_num_ind=apply(test,2,sd),min_num_ind=apply(test,2,min),max_num_ind=apply(test,2,max))
-
-
-
-########### Diversidade per island #################
-df<-aggregate(db1$numb,by=list(island=db1$island,coreID=db1$coreID,low_taxa=db1$low_taxa),FUN=sum)
-df1<-dcast(df,island+coreID~low_taxa)
-table(df1$island)
-
-R=1000
-set.seed(3)
-island<-as.character(unique(df1$island))
-y=c("Orango","Formosa","Bubaque")
-island1<-island[order(match(island,y))]
-g1<-array(NA, c(length(island1), 5))
-colnames(g1)<-c("island","Mean_Shannon-Wiener","SD","N_cores","N_ind")
-
-cores<-108
-dens1<-function(x){x/0.00866}
-dens2<-function(x){x/0.00817}
-
-for (x in 1:length(island1))
-{
-  print(island1[x])
-  g1[x,1]<-island1[x]
-  tt<-df1[df1$island==island1[x],-(1:2)]
-  tt1<-tt[sample(1:nrow(tt), 1, replace=T),]
-  lim<-sum(tt1)
-  for (i in 2:cores) {
-    print(paste("starting core",i))
-    if(lim<=1500){
-      tt1[i,]<-tt[sample(1:nrow(tt), 1, replace=T),]
-      lim<-sum(tt1)
-    } else{
-      print(paste("sampling in",island1[x],"reached",lim,"ind at core",i))
-    }
-  }
-  g1[x,4]<-nrow(tt1)
-  g1[x,5]<-lim
-  print(paste("starting diversity calculations in",island1[x]))
-  ### calculating density
-  if(island1[x]=="Orango"){
-    tt2<-sapply(tt1,dens1)
-  } else {
-    tt2<-sapply(tt1,dens2)
-  }
-  rr<-array(NA,R)
-  for (y in 1:R)
-  {
-    sel<-sample(1:nrow(tt2), nrow(tt2), replace=T)
-    f<-apply(tt2[sel,], 2, mean)
-    f1<-f[-c(which(f==0))]
-    rr[y]<-sum(f1/sum(f1)*log(f1/sum(f1)))*-1
-  }
-  g1[x,2]<-round(mean(rr),2)
-  g1[x,3]<-round(sd(rr),2)
-}
-
-
-############################### Now selecting only samples for which we have data for the same months #########################
-unique(db1$month)
-db2<-db1[which(db1$month=="2"|db1$month=="3"),]
-unique(db2$month)
-
-###############################################################################################################################
-### Checking differences in the mean total numb ind in each site based on boostrapping 71 samples 1000 times
-t1<-aggregate(db2$numb,by=list(site=db2$site,coreID=db2$coreID,low_taxa=db2$low_taxa),FUN=sum)
-t2<-dcast(t1,site+coreID~low_taxa)
-table(t2$site)
-
-set.seed(1)
-r=1000
-test<-array(NA,c(r,length(unique(t2$site))))
-site<-as.character(unique(t2$site))
-y=c("AB","A","E","BI","BR","AD")
-site1<-site[order(match(site,y))]
-colnames(test)<-site1
-
-for (i in 1:length(site1)) {
-  print(site1[i])
-  t3<-t2[which(t2$site==site1[i]),]
-  for (j in 1:r) {
-    s<-t3[sample(1:nrow(t3),28,replace=T),]
-    s1<-apply(s[,-c(1:2)],2,sum)
-    test[j,i]<-sum(s1)
-  }
-}
-tot3<-data.frame(site=site1,mean_num_ind=apply(test,2,mean),sd_num_ind=apply(test,2,sd),min_num_ind=apply(test,2,min),max_num_ind=apply(test,2,max))
-
-
-############## Calcular diversidade Shannon-Wienner limitando o bootstrap a 71 cores e/ou 800 individuos por site
-########### Diversidade per site #################
-dd<-aggregate(db2$numb,by=list(site=db2$site,coreID=db2$coreID,low_taxa=db2$low_taxa),FUN=sum)
-dd1<-dcast(dd,site+coreID~low_taxa)
-
-R=1000
-set.seed(0)
-site<-as.character(unique(dd1$site))
-y=c("AB","A","E","BI","BR","AD")
-site1<-site[order(match(site,y))]
-d1<-array(NA, c(length(site1), 5))
-colnames(d1)<-c("site","Mean_Shannon-Wiener","SD","N_cores","N_ind")
-
-cores<-28
-sum(tt1)
-dens1<-function(x){x/0.00866}
-dens2<-function(x){x/0.00817}
-
-for (x in 1:length(site1))
-{
-  print(site1[x])
-  d1[x,1]<-site1[x]
-  tt<-dd1[dd1$site==site1[x],-(1:2)]
-  tt1<-tt[sample(1:nrow(tt), 1, replace=T),]
-  lim<-sum(tt1)
-  for (i in 2:cores) {
-    print(paste("starting core",i))
-    if(lim<=1000){
-      tt1[i,]<-tt[sample(1:nrow(tt), 1, replace=T),]
-      lim<-sum(tt1)
-    } else{
-      print(paste("sampling in",site1[x],"reached",lim,"ind at core",i))
-    }
-  }
-  d1[x,4]<-nrow(tt1)
-  d1[x,5]<-lim
-  print(paste("starting diversity calculations in",site1[x]))
-  ### calculating density
-  if(site1[x]=="AD"){
-    tt2<-sapply(tt1,dens1)
-  } else {
-    tt2<-sapply(tt1,dens2)
-  }
-  rr<-array(NA,R)
-  for (y in 1:R)
-  {
-    sel<-sample(1:nrow(tt2), nrow(tt2), replace=T)
-    f<-apply(tt2[sel,], 2, mean)
-    f1<-f[-c(which(f==0))]
-    rr[y]<-sum(f1/sum(f1)*log(f1/sum(f1)))*-1
-  }
-  d1[x,2]<-round(mean(rr),2)
-  d1[x,3]<-round(sd(rr),2)
-}
 
 ###################### diversity estimates with increasing sample size (core) ###############################
 
@@ -297,8 +170,8 @@ colnames(d1)<-c("site","Mean_Shannon_Wiener","SD","N_cores","N_ind")
 myList<-vector("list",107)
 cores<-c(2:108)
 sum(tt1)
-dens1<-function(x){x/0.00866}
-dens2<-function(x){x/0.00817}
+dens1<-function(x){x/0.0113}
+dens2<-function(x){x/0.00785}
 
 for (j in cores){
   
@@ -384,8 +257,89 @@ ggplot(A1,aes(x=N_ind,y=Mean_Shannon_Wiener,col=site1))+
 
 
 
-############## Calcular riqueza específica limitando o bootstrap a 1 até 71 cores por site
+
 ########### Riqueza específica por site #################
+
+#### Calculating species richness using 71 cores and a limit of 800 individuals
+R=1000
+set.seed(6)
+site<-as.character(unique(dd1$site))
+y=c("A","AB","BI","E","BR","AD")
+site1<-site[order(match(site,y))]
+s1<-array(NA, c(R, 4))
+colnames(s1)<-c("site","sp_richness","N_cores","N_ind")
+myList2<-vector("list",length(site1))
+names(myList2)<-site1
+
+cores<-71
+
+presabs<-function(x){ifelse(x>0,1,0)}
+
+for (x in 1:length(site1))
+{
+  print(site1[x])
+  tt<-dd1[dd1$site==site1[x],-(1:2)]
+  
+  for (y in 1:R) {
+    print(paste("Starting",y,"in",site[x])) 
+    s1[y,1]<-site1[x]
+    
+    ##Creating random sample of size "cores" from the original database of the site
+    tt1<-tt[sample(1:nrow(tt), 1, replace=T),]
+    lim<-sum(tt1)
+    for (i in 2:cores) {
+      if(lim<=800){
+        tt1[i,]<-tt[sample(1:nrow(tt), 1, replace=T),]
+        lim<-sum(tt1)
+      } else{
+        print(paste("sampling in",site1[x],"reached",lim,"ind at core",i))
+      }
+    }
+    
+    s1[y,3]<-nrow(tt1) ## record the number of cores
+    s1[y,4]<-lim ##record the number of individuals
+    
+    ###Calculate species richness
+    print(paste("starting sp richness calculations in",site1[x]))
+    
+    f<-apply(tt1,2,sum)
+    f1<-sapply(f,presabs)
+    s1[y,2]<-sum(f1) #Record the sp richenss
+    
+  }
+  
+  myList2[[x]]<-s1
+  
+}
+beep(3)
+
+##Calculate mean and sd of the results of bootstrap
+
+myList2[[1]]
+SPR1<-data.frame(site=NA,sp_richness =NA,N_cores=NA,N_ind=NA)
+names(SPR1)
+
+for (i in 1:length(myList2)){
+  SPR2<-data.frame(myList2[[i]])
+  SPR1<-rbind(SPR1,SPR2)
+}
+
+SPR11<-SPR1[-1,]
+str(SPR11)
+SPR11$sp_richness<-as.numeric(SPR11$sp_richness)
+SPR11$N_cores<-as.numeric(SPR11$N_cores)
+SPR11$N_ind<-as.numeric(SPR11$N_ind)
+
+SPR<-data.table(SPR11)
+SPR[,lapply(.SD,mean),by=site] ##get means
+SPR[,lapply(.SD,sd),by=site] ## get sd
+
+
+
+
+
+############## Calcular riqueza específica limitando o bootstrap a 1 até 71 cores por site
+
 dd<-aggregate(db3$numb,by=list(site=db3$site,coreID=db3$coreID,low_taxa=db3$taxaf),FUN=sum)
 dd1<-dcast(dd,site+coreID~low_taxa)
 table(dd1$site)
@@ -482,51 +436,55 @@ ggplot(B1,aes(x=N_ind,y=Mean_sp_richness,col=site1))+
   scale_x_continuous(breaks = seq(0,3030,200))
 
 
-#### Calculating species richness using 71 cores and a limit of 800 individuals
-R=1000
-set.seed(6)
-site<-as.character(unique(dd1$site))
-y=c("A","AB","BI","E","BR","AD")
-site1<-site[order(match(site,y))]
-s1<-array(NA, c(length(site1), 5))
-colnames(s1)<-c("site","Mean_sp_richness","SD","N_cores","N_ind")
 
-cores<-71
 
-presabs<-function(x){ifelse(x>0,1,0)}
 
+###########ALternative wrong way #######################
 for (x in 1:length(site1))
+{
+  print(site1[x])
+  s1[x,1]<-site1[x]
+  tt<-dd1[dd1$site==site1[x],-(1:2)]
+  
+  
+  
+  ##Creating random sample of size "cores" from the original database of the site
+  tt1<-tt[sample(1:nrow(tt), 1, replace=T),]
+  lim<-sum(tt1)
+  for (i in 2:cores) {
+    print(paste("starting core",i))
+    if(lim<=800){
+      tt1[i,]<-tt[sample(1:nrow(tt), 1, replace=T),]
+      lim<-sum(tt1)
+    } else{
+      print(paste("sampling in",site1[x],"reached",lim,"ind at core",i))
+    }
+  }
+  
+  
+  s1[x,4]<-nrow(tt1) ## record the number of cores
+  s1[x,5]<-lim ##record the number of individuals
+  
+  
+  ###Calculate species richness
+  print(paste("starting sp richness calculations in",site1[x]))
+  
+  rr<-array(NA,R)
+  for (y in 1:R)
   {
-    print(site1[x])
-    s1[x,1]<-site1[x]
-    tt<-dd1[dd1$site==site1[x],-(1:2)]
-    tt1<-tt[sample(1:nrow(tt), 1, replace=T),]
-    lim<-sum(tt1)
-    for (i in 2:cores) {
-      print(paste("starting core",i))
-      if(lim<=800){
-        tt1[i,]<-tt[sample(1:nrow(tt), 1, replace=T),]
-        lim<-sum(tt1)
-      } else{
-        print(paste("sampling in",site1[x],"reached",lim,"ind at core",i))
-      }
-    }
-    s1[x,4]<-nrow(tt1)
-    s1[x,5]<-lim
-    print(paste("starting sp richness calculations in",site1[x]))
-    
-    rr<-array(NA,R)
-    for (y in 1:R)
-    {
-      sel<-sample(1:nrow(tt1), nrow(tt1), replace=T)
-      f<-apply(tt1[sel,],2,sum)
-      f1<-sapply(f,presabs)
-      rr[y]<-sum(f1)
-    }
-    s1[x,2]<-round(mean(rr),2)
-    s1[x,3]<-round(sd(rr),2)
+    sel<-sample(1:nrow(tt1), nrow(tt1), replace=T)
+    f<-apply(tt1[sel,],2,sum)
+    f1<-sapply(f,presabs)
+    rr[y]<-sum(f1)
+  }
+  
+  
+  s1[x,2]<-round(mean(rr),2) #Record the mean sp richenss
+  s1[x,3]<-round(sd(rr),2) # record the sd sp richness
 }
 beep()
+
+
 
 
 
@@ -540,8 +498,10 @@ for(i in 1:length(site1)){
   totsp[i,2]<-db3[site==site1[i]&numb>0,length(unique(taxaf))]
 }
 
+
+#####Overall sp richness
 db3[numb>0,length(unique(taxaf))]
-sps<-db3[,sum(numb), by=taxaf]
+sps<-db3[,sum(numb), by=taxaf] ##checking for sps with zero occurence
 
 ##########################################################
 #########################################################################
@@ -591,7 +551,89 @@ plot(rar_an,ci.type="bar",ci.lty=0, ci.col=p[1],col=p[1],lwd=3,add=T,xvar="indiv
 
 
 
-######
 
-test<-rarefy(adonga[,3:(ncol(adonga)-1)],sample=rrmax,se=T)
-rrmax<-min(rowSums(adonga[,3:(ncol(adonga)-1)]))
+
+
+
+
+
+### Checking differences in the mean total numb ind in each island based on boostrapping 108 samples 1000 times
+i1<-aggregate(db2$numb,by=list(island=db2$island,coreID=db2$coreID,low_taxa=db2$taxaf),FUN=sum)
+i2<-dcast(i1,island+coreID~low_taxa)
+
+
+set.seed(2)
+r=1000
+test<-array(NA,c(r,length(unique(i2$island))))
+island<-as.character(unique(i2$island))
+y=c("Orango","Formosa","Bubaque")
+island1<-island[order(match(island,y))]
+colnames(test)<-island1
+
+for (i in 1:length(island1)) {
+  print(island1[i])
+  i3<-i2[which(i2$island==island1[i]),]
+  for (j in 1:r) {
+    s<-i3[sample(1:nrow(i3),108,replace=T),]
+    s1<-apply(s[,-c(1:2)],2,sum)
+    test[j,i]<-sum(s1)
+  }
+}
+tot1<-data.frame(island=island1,mean_num_ind=apply(test,2,mean),sd_num_ind=apply(test,2,sd),min_num_ind=apply(test,2,min),max_num_ind=apply(test,2,max))
+
+
+
+########### Diversidade per island #################
+df<-aggregate(db1$numb,by=list(island=db1$island,coreID=db1$coreID,low_taxa=db1$low_taxa),FUN=sum)
+df1<-dcast(df,island+coreID~low_taxa)
+table(df1$island)
+
+R=1000
+set.seed(3)
+island<-as.character(unique(df1$island))
+y=c("Orango","Formosa","Bubaque")
+island1<-island[order(match(island,y))]
+g1<-array(NA, c(length(island1), 5))
+colnames(g1)<-c("island","Mean_Shannon-Wiener","SD","N_cores","N_ind")
+
+cores<-108
+dens1<-function(x){x/0.00866}
+dens2<-function(x){x/0.00817}
+
+for (x in 1:length(island1))
+{
+  print(island1[x])
+  g1[x,1]<-island1[x]
+  tt<-df1[df1$island==island1[x],-(1:2)]
+  tt1<-tt[sample(1:nrow(tt), 1, replace=T),]
+  lim<-sum(tt1)
+  for (i in 2:cores) {
+    print(paste("starting core",i))
+    if(lim<=1500){
+      tt1[i,]<-tt[sample(1:nrow(tt), 1, replace=T),]
+      lim<-sum(tt1)
+    } else{
+      print(paste("sampling in",island1[x],"reached",lim,"ind at core",i))
+    }
+  }
+  g1[x,4]<-nrow(tt1)
+  g1[x,5]<-lim
+  print(paste("starting diversity calculations in",island1[x]))
+  ### calculating density
+  if(island1[x]=="Orango"){
+    tt2<-sapply(tt1,dens1)
+  } else {
+    tt2<-sapply(tt1,dens2)
+  }
+  rr<-array(NA,R)
+  for (y in 1:R)
+  {
+    sel<-sample(1:nrow(tt2), nrow(tt2), replace=T)
+    f<-apply(tt2[sel,], 2, mean)
+    f1<-f[-c(which(f==0))]
+    rr[y]<-sum(f1/sum(f1)*log(f1/sum(f1)))*-1
+  }
+  g1[x,2]<-round(mean(rr),2)
+  g1[x,3]<-round(sd(rr),2)
+}
+

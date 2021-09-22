@@ -11,10 +11,11 @@ DB66<-fread("data_out/db/Final_DB_lowtaxa_density_polyexcl_20210202.csv") ### cr
 str(DB66)
 
 
+
 ##Remove non-target benthos
 unique(DB66$low_taxa[which(DB66$class1=="Other")])
 db<-DB66[-which(DB66$class1=="Other"),]
-unique(db$low_taxa)
+sps<-data.frame(sp=unique(db$low_taxa))
 
 ##Check data
 sum(db[low_taxa=="Polychaeta_errantia",numb])/sum(db$numb)*100

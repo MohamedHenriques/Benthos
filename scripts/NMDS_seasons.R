@@ -8,23 +8,23 @@ lapply(packs,require,character.only=T)
 
 p<-c("#4DAF4A","darkgreen","#377EB8","#984EA3","#FF7F00","#E41A1C")
 
-DB1<-fread("Data_out/db/DB_multianal_20210127.csv") ##Data created in script Bray-Curtis_NMDS
+DB1<-fread("Data_out/db/DB_multianal_20210312.csv") ##Data created in script Bray-Curtis_NMDS
 
 ##Prepare data and remove rows with zeros in all columns
 
 data<-DB1[apply(DB1[,!(1:3)],1,sum)!=0] ### Bray curtis does not work with empty cores. So we have to remove all of them
-table(apply(data[,!c(1:3,89)], 2, sum)==0)
+table(apply(data[,!c(1:3)], 2, sum)==0)
 
 data[,season:="season"][month==10|month==11,season:="begining"][month==12|month==1|month==2,season:="mid"][month==3|month==4,season:="end"]
 data[,season:=factor(season, levels=c("begining","mid","end"))]
 data[,.(season,month)]
 
-data1<-data[,!c(1:3,89)] ###NMDS requires a matrix of values only, so we need to remove the aggregating variables
+data1<-data[,!c(1:3,86)] ###NMDS requires a matrix of values only, so we need to remove the aggregating variables
 
 
 data1[,dummy:=88.49558]
 
-data2<-data[,c(1:3,89)] ###store aggregating variables to use latter
+data2<-data[,c(1:3,86)] ###store aggregating variables to use latter
 
 ############Cutting db
 m<-data1[,apply(.SD,2,mean)]
@@ -811,10 +811,10 @@ p<-c("#4DAF4A","darkgreen","#377EB8","#984EA3","#FF7F00","#E41A1C")
 
 dataBeg<-data[season=="begining"]
 dataBeg[,site:=factor(site,levels=c("A","AB","BI","E","BR","AD"))]
-dataBeg1<-dataBeg[,!c(1:3,89)]
+dataBeg1<-dataBeg[,!c(1:3,86)]
 dataBeg1[,dummy:=88.49558]
 
-dataBeg2<-dataBeg[,c(1:3,89)]
+dataBeg2<-dataBeg[,c(1:3,86)]
 
 dataBeg1log<-log(dataBeg1+1)
 
@@ -932,10 +932,10 @@ PP_CAP_Beg+
 
 dataMid<-data[season=="mid"]
 dataMid[,site:=factor(site,levels=c("A","AB","BI","E","BR","AD"))]
-dataMid1<-dataMid[,!c(1:3,89)]
+dataMid1<-dataMid[,!c(1:3,86)]
 dataMid1[,dummy:=88.49558]
 
-dataMid2<-dataMid[,c(1:3,89)]
+dataMid2<-dataMid[,c(1:3,86)]
 
 dataMid1log<-log(dataMid1+1)
 
@@ -997,11 +997,11 @@ pairwise.adonis(distMid,factors=dataMid2$site,p.adjust.m="bonferroni", perm=1000
 
 ### CAP Mid
 ###
-set.seed(111)
-system.time(
-  OM1Mid<-CAPdiscrim(dataMid1log~site,data=dataMid2,dist="bray",axes=3,m=0,add=F, permutations = 10000)
-)
+set.seed(11111111)
+
+OM1Mid<-CAPdiscrim(dataMid1log~site,data=dataMid2,dist="bray",axes=3,m=0,add=F, permutations = 1000)
 beep(3)
+
 summary(OM1Mid)
 OM1Mid$manova
 OM1Mid$m
@@ -1015,7 +1015,7 @@ head(data.scoresCAP_Mid)
 
 
 ###fit sps data in Mid
-set.seed(112)
+set.seed(11211111)
 fitCAP_Mid<-envfit(OM1Mid,dataMid1log,permutations=10000)
 arrowCAP_Mid<-data.frame(fitCAP_Mid$vectors$arrows,R=fitCAP_Mid$vectors$r,P=fitCAP_Mid$vectors$pvals)
 arrowCAP_Mid$FG <- rownames(arrowCAP_Mid)
@@ -1043,10 +1043,10 @@ PP_CAP_Mid+
 
 dataEnd<-data[season=="end"]
 dataEnd[,site:=factor(site,levels=c("A","AB","BI","E","BR","AD"))]
-dataEnd1<-dataEnd[,!c(1:3,89)]
+dataEnd1<-dataEnd[,!c(1:3,86)]
 dataEnd1[,dummy:=88.49558]
 
-dataEnd2<-dataEnd[,c(1:3,89)]
+dataEnd2<-dataEnd[,c(1:3,86)]
 
 dataEnd1log<-log(dataEnd1+1)
 
@@ -1111,7 +1111,7 @@ test1<-dataEnd1log[-which(dataEnd2$site=="AD")]
 test2<-dataEnd2[-which(dataEnd2$site=="AD")]
 set.seed(117)
 system.time(
-  OM1End<-CAPdiscrim(test1~site,data=test2,dist="bray",axes=3,m=0,add=F, permutations = 10000)
+  OM1End<-CAPdiscrim(dataEnd1log~site,data=dataEnd2,dist="bray",axes=3,m=0,add=F, permutations = 1000)
 )
 beep(4)
 summary(OM1End)
