@@ -1,4 +1,4 @@
-setwd("D:/Work/FCUL/Doutoramento/R/Benthos/GitHub/Benthos/Benthos")
+setwd("C:/Doutoramento1/R/Benthos/GitHub/Benthos/Benthos")
 graphics.off()
 rm(list=ls())
 

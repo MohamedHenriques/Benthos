@@ -1,12 +1,27 @@
-setwd("D:/Work/FCUL/Doutoramento/R/Benthos/GitHub/Benthos/Benthos")
-graphics.off()
 rm(list=ls())
+graphics.off()
+OS <- .Platform$OS.type
+if (OS == "windows"){
+  setwd("C:/Doutoramento1/R/Benthos/GitHub/Benthos/Benthos") # Windows file path
+  print(paste("working on",OS,getwd()))
+} else if (OS == "unix"){
+  setwd("/Users/MohamedHenriques/Work/R/Benthos") # MAC file path
+  print(paste("working on",OS,getwd()))
+} else {
+  print("ERROR: OS could not be identified")
+}
 
 ## Pacotes
 packs<-c("MASS","ggplot2","viridis","RColorBrewer","psych","reshape2","beepr","data.table","car")
+npacks <- packs[!(packs %in% installed.packages()[,"Package"])]
+if(length(npacks)) install.packages(npacks)
+#install_github("vqv/ggbiplot")
 lapply(packs,require,character.only=T)
 
-###Load database with overall data (without class or low taxa, ust one line per core)
+
+
+
+
 DB69<-fread("data_out/db/Final_DB_total_otherexc_density_polyexcl_20210202.csv") ### created in script called Database_cleanup_joining
 str(DB69)
 
@@ -17,7 +32,6 @@ DB69[,unique(month2)]
 
 DB<-DB69
 
-## Load database at class level, for GLM for each class
 DB68<-fread("data_out/db/Final_DB_class1_density_polyexcl_20210202.csv")
 
 DB68[,month1:=factor(month,levels=time)]
@@ -30,11 +44,11 @@ str(DB)
 sum(DB$dens)
 
 tot<-mean(DB1[class1=="Bivalvia",dens])+
-mean(DB1[class1=="Polychaeta_sedentaria",dens])+
-mean(DB1[class1=="Polychaeta_errantia",dens])+
-mean(DB1[class1=="Malacostraca",dens])+
-mean(DB1[class1=="Gastropoda",dens])+
-mean(DB1[class1=="Other",dens])
+  mean(DB1[class1=="Polychaeta_sedentaria",dens])+
+  mean(DB1[class1=="Polychaeta_errantia",dens])+
+  mean(DB1[class1=="Malacostraca",dens])+
+  mean(DB1[class1=="Gastropoda",dens])+
+  mean(DB1[class1=="Other",dens])
 
 DB1[class1=="Bivalvia",dens==0]
 
@@ -64,17 +78,17 @@ sum(b1+ps1+pe1+m1+g1+o1)
 
 ##Take a look at data
 ###site
-ggplot(DB1,aes(x=class1,y=dens,colour=site))+
+ggplot(DB,aes(x=class1,y=dens,colour=site))+
   stat_summary(geom = "pointrange",position=position_dodge(width=0.4),size=1)+
   theme_bw()
 
 ###month as factor
-ggplot(DB1,aes(x=month1,y=dens,colour=site))+
+ggplot(DB,aes(x=month1,y=dens,colour=site))+
   stat_summary(geom = "pointrange",position=position_dodge(width=0.4),size=1)+
   theme_bw()
 
 ###month as numeric
-ggplot(DB1,aes(x=month2,y=dens,colour=site))+
+ggplot(DB,aes(x=month2,y=dens,colour=site))+
   stat_summary(geom = "pointrange",position=position_dodge(width=0.4),size=1)+
   scale_x_continuous(breaks=1:7,labels=c(10,11,12,1,2,3,4))+
   stat_smooth(method="loess",se=F)+
@@ -108,14 +122,14 @@ unique(DB$month2)
 
 
 
-m1a<-update(m1,~.-site1:month2)
+m1a<-update(m1,~.-site:month2)
 drop1(m1a, test="Chi")
 anova(m1,m1a)
 AIC(m1,m1a)
 summary(m1a)
 
 ######## Bivalves
-dbb<-DB[class1=="Bivalvia"]
+dbb<-DB1[class1=="Bivalvia"]
 
 m2<-glm.nb(x~site*month2+offset(log(areacore)),data=dbb)
 summary(m2)
@@ -315,8 +329,3 @@ ggplot()+
   stat_summary(data=dbm,aes(x=month2, y=x, col=site),geom="pointrange",shape=34,size=3,position=position_dodge(width=0.4))+
   ylab("Abundance (ind per core)")+xlab("Month")+
   ggtitle("Malacostraca")
-
-
-
-
-
