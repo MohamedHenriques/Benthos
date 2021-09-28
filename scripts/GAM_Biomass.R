@@ -130,7 +130,7 @@ gam.check(g1, k.rep=1000)
 
 plot.gam(g1,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBA_PS,aes(x=month2,y=AFDW_mg/coreArea/coreArea)) +
+ggplot(DBA_PS,aes(x=month2,y=AFDW_mg/coreArea)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
@@ -157,11 +157,13 @@ gam.check(g2, k.rep=1000)
 
 plot.gam(g2,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBA_PE,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBA_PE,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
-  geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
+  geom_line(aes(y=fitted(g2)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g2a)),color = "green", size=1) +
+  #geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
 
@@ -183,10 +185,12 @@ gam.check(g3, k.rep=1000)
 
 plot.gam(g3,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBA_B,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBA_B,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g3)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g3a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -210,10 +214,12 @@ gam.check(g4, k.rep=1000)
 
 plot.gam(g4,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBA_G,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBA_G,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g4)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g4a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -237,10 +243,12 @@ gam.check(g5, k.rep=1000)
 
 plot.gam(g5,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBA_M,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBA_M,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g5)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g5a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -257,8 +265,7 @@ summary(g1a)
 
 anova(g1,g1a,test="Chisq")
 
-AIC(g1)
-AIC(g1a)
+AIC(g1,g1a)
 
 summary(g1)$sp.criterion
 summary(g1a)$sp.criterion
@@ -267,7 +274,7 @@ gam.check(g1, k.rep=1000)
 
 plot.gam(g1,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBAB_PS,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBAB_PS,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
@@ -294,10 +301,12 @@ gam.check(g2, k.rep=1000)
 
 plot.gam(g2,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBAB_PE,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBAB_PE,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g2)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g2a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -320,12 +329,13 @@ gam.check(g3, k.rep=1000)
 
 plot.gam(g3,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBAB_B,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBAB_B,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
-  geom_line(aes(y=fitted(g3)),color = "red", size=1.2) +
+  geom_line(aes(y=fitted(g3)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g3a)),color = "green", size=1) +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
 
@@ -348,10 +358,12 @@ gam.check(g4, k.rep=1000)
 
 plot.gam(g4,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBAB_G,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBAB_G,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g4)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g4a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -375,10 +387,12 @@ gam.check(g5, k.rep=1000)
 
 plot.gam(g5,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBAB_M,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBAB_M,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g5)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g5a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -395,8 +409,7 @@ summary(g1a)
 
 anova(g1,g1a,test="Chisq")
 
-AIC(g1)
-AIC(g1a)
+AIC(g1,g1a)
 
 summary(g1)$sp.criterion
 summary(g1a)$sp.criterion
@@ -405,11 +418,12 @@ gam.check(g1, k.rep=1000)
 
 plot.gam(g1,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBBI_PS,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBBI_PS,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
-  #geom_line(aes(y=fitted(g1)),color = "green", size=1.2) +
+  geom_line(aes(y=fitted(g1)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g1a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -432,10 +446,12 @@ gam.check(g2, k.rep=1000)
 
 plot.gam(g2,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBBI_PE,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBBI_PE,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g2)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g2a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -458,10 +474,12 @@ gam.check(g3, k.rep=1000)
 
 plot.gam(g3,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBBI_B,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBBI_B,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g3)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g3a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -485,10 +503,12 @@ gam.check(g4, k.rep=1000)
 
 plot.gam(g4,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBBI_G,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBBI_G,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g4)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g4a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -512,10 +532,12 @@ gam.check(g5, k.rep=1000)
 
 plot.gam(g5,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBBI_M,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBBI_M,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g5)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g5a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -531,8 +553,7 @@ summary(g1a)
 
 anova(g1,g1a,test="Chisq")
 
-AIC(g1)
-AIC(g1a)
+AIC(g1,g1a)
 
 summary(g1)$sp.criterion
 summary(g1a)$sp.criterion
@@ -541,11 +562,12 @@ gam.check(g1, k.rep=1000)
 
 plot.gam(g1,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBBR_PS,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBBR_PS,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
-  #geom_line(aes(y=fitted(g1)),color = "green", size=1.2) +
+  geom_line(aes(y=fitted(g1)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g1a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -568,10 +590,12 @@ gam.check(g2, k.rep=1000)
 
 plot.gam(g2,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBBR_PE,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBBR_PE,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g2)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g2a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -594,11 +618,13 @@ gam.check(g3, k.rep=1000)
 
 plot.gam(g3,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBBR_B,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBBR_B,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
-  geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
+  geom_line(aes(y=fitted(g3)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g3a)),color = "green", size=1) +
+  geom_smooth(method="gam", formula=y~s(x,k=7), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
 
@@ -621,10 +647,12 @@ gam.check(g4, k.rep=1000)
 
 plot.gam(g4,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBBR_G,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBBR_G,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g4)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g4a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -648,10 +676,12 @@ gam.check(g5, k.rep=1000)
 
 plot.gam(g5,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBBR_M,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBBR_M,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g5)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g5a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -678,11 +708,12 @@ gam.check(g1, k.rep=1000)
 
 plot.gam(g1,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBE_PS,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBE_PS,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
-  #geom_line(aes(y=fitted(g1)),color = "green", size=1.2) +
+  geom_line(aes(y=fitted(g1)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g1a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -705,10 +736,12 @@ gam.check(g2, k.rep=1000)
 
 plot.gam(g2,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBE_PE,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBE_PE,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g2)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g2a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -731,12 +764,13 @@ gam.check(g3, k.rep=1000)
 
 plot.gam(g3,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBE_B,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBE_B,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g3)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g3a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=7), se = T, color="blue") +
-  geom_line(data=predict(g3),se = T, color="red") +
   theme_bw()
 
 
@@ -758,10 +792,12 @@ gam.check(g4, k.rep=1000)
 
 plot.gam(g4,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBE_G,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBE_G,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g4)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g4a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -785,10 +821,12 @@ gam.check(g5, k.rep=1000)
 
 plot.gam(g5,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBE_M,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBE_M,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g5)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g5a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=7), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -815,12 +853,13 @@ gam.check(g1, k.rep=1000)
 
 plot.gam(g1,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBAD_PS,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBAD_PS,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
-  #geom_line(aes(y=fitted(g1)),color = "green", size=1.2) +
-  geom_smooth(method="gam", formula=y~s(x,k=6), se = T, color="blue") +
+  geom_line(aes(y=fitted(g1)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g1a)),color = "green", size=1) +
+  geom_smooth(method="gam", formula=y~s(x,k=3), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
 
@@ -842,10 +881,12 @@ gam.check(g2, k.rep=1000)
 
 plot.gam(g2,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBAD_PE,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBAD_PE,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g2)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g2a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=3), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -868,10 +909,12 @@ gam.check(g3, k.rep=1000)
 
 plot.gam(g3,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBAD_B,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBAD_B,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g3)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g3a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=3), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -895,10 +938,12 @@ gam.check(g4, k.rep=1000)
 
 plot.gam(g4,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBAD_G,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBAD_G,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g4)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g4a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=3), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
@@ -922,10 +967,12 @@ gam.check(g5, k.rep=1000)
 
 plot.gam(g5,residuals=T,pch=16,all.terms=T)
 
-ggplot(DBAD_M,aes(x=month2,y=AFDW_mg/coreArea)) +
+ggplot(DBAD_M,aes(x=month2,y=AFDW_mg)) +
   #geom_point() +
   stat_summary()+
   labs(x = "Month (1=Oct,7=Apr)", y = "AFDW (mg/m2)") +
+  geom_line(aes(y=fitted(g5)),color = "red", size=1) +
+  geom_line(aes(y=fitted(g5a)),color = "green", size=1) +
   geom_smooth(method="gam", formula=y~s(x,k=3), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
