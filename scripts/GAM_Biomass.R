@@ -976,3 +976,86 @@ ggplot(DBAD_M,aes(x=month2,y=AFDW_mg)) +
   geom_smooth(method="gam", formula=y~s(x,k=3), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
+
+
+
+
+########### Total plot GAM Biomass #################
+
+db1[,site2:=factor(site1,levels=c("A","AB","BI","E","BR","AD"))]
+
+SITES<-c("Anrumai","Abu","Bijante","Escadinhas","Bruce","Adonga")
+names(SITES)<-levels(factor(unique(db1$site2)))
+
+#Merging months
+
+DATES1<-c("OCT","NOV","DEC","JAN","FEB","MAR","APR")
+names(DATES1)<-levels(factor(unique(db1$month2)))
+
+ggplot(db1, aes(x=AFDWarea,y=reorder(class2, AFDWarea),col=class2)) +
+  #geom_point(size=3)+
+  stat_summary(size=0.8)+
+  facet_grid(month2 ~ site1,scales="free",labeller = labeller(month2=DATES1,site1=SITES))+
+  theme_bw() +
+  labs(x="AFDW (mg.m-2)",y="Class (ordered by total AFDW.m-2)")+
+  scale_colour_brewer(palette="Dark2")+
+  theme(axis.text.x = element_text(size=12),
+        axis.text.y = element_text(size=12),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_line(colour="grey60", linetype="dashed"),
+        axis.title = element_text(size=16,face="bold"))+
+  theme(legend.text=element_text(size=16),legend.title = element_text(size=20))
+
+
+
+ggplot(db1, aes(y=AFDWarea,x=month2)) +
+  stat_summary(size=0.8)+
+  geom_smooth(data=db1[site=="AD"],aes(y=AFDWarea,x=month2),se=T, method="gam",formula=y~s(x,k=3))+
+  geom_smooth(data=db1[site2=="A"|site2=="AB"],aes(y=AFDWarea,x=month2),se=T, method="gam",formula=y~s(x,k=6))+
+  geom_smooth(data=db1[site2=="BI"|site2=="BR"|site2=="E"],aes(y=AFDWarea,x=month2),se=T, method="gam",formula=y~s(x,k=7))+
+  facet_grid(reorder(class2,-AFDWarea) ~ site2,scales="free_y",labeller = labeller(site2=SITES))+
+  scale_x_continuous(breaks=c(1:7),labels=DATES1)+
+  theme_bw() +
+  labs(y="AFDW (mg.m-2)",x="Months")+
+  theme(axis.text.x = element_text(size=12),
+        axis.text.y = element_text(size=18),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_line(colour="grey60", linetype="dashed"),
+        axis.title = element_text(size=16,face="bold"))+
+  theme(strip.text = element_text(face="bold", size=rel(1.15)))+
+  theme(legend.text=element_text(size=16),legend.title = element_text(size=20))
+
+
+
+
+#### More detailed temporal graphs
+### per site vs class
+
+
+ggplot(db1,aes(x=month1,y=AFDWarea,col=class2,group=class2))+
+  stat_summary(geom="pointrange",position=position_dodge(width=0.3),size=0.7)+
+  stat_summary(geom="line",lwd=1.5,alpha=0.50)+
+  facet_wrap(.~site1,labeller = labeller(site1=SITES))+
+  theme_bw()+
+  labs(x="Month (aggregation of all years)",y="Mean AFDWareaity (ind.m-2)")+
+  theme(axis.text.x = element_text(size=16),axis.text.y = element_text(size=12),axis.title = element_text(size=15,face="bold"))+
+  theme(strip.text = element_text(face="bold", size=rel(1.5)))
+
+
+DB88$month1<-factor(DB88$month, levels=c("10","11","12","1","2","3","4"))
+
+ggplot(DB88[DB88$cut=="Y",],aes(x=month1,y=AFDWarea,col=low_taxa,group=low_taxa))+
+  #stat_summary(geom="pointrange",position=position_dodge(width=0.6),size=0.7)+
+  geom_smooth(geom="smooth",method="auto",se=F,size=1.5)+
+  facet_wrap(.~site1,scales="free")+
+  theme_bw()+
+  labs(x="Time (months of sampling)",y="mean of AFDWareaity (ind.m-2)")+
+  theme(axis.text.x = element_text(angle=45, hjust=1, vjust=1))
+#scale_colour_manual(values=c("red","steelblue2","royalblue3","darkblue","limegreen","darkgreen"))
+#scale_x_datetime(breaks=c(unique(db1$time3)))
+
+
+
+
