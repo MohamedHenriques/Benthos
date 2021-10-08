@@ -2,7 +2,7 @@ rm(list=ls())
 graphics.off()
 OS <- .Platform$OS.type
 if (OS == "windows"){
-  setwd("D:/Work/FCUL/Doutoramento/R/Benthos/GitHub/Benthos/Benthos") # Windows file path
+  setwd("C:/Doutoramento1/R/Benthos/GitHub/Benthos/Benthos") # Windows file path
   print(paste("working on",OS,getwd()))
 } else if (OS == "unix"){
   setwd("/Users/MohamedHenriques/Work/R/Benthos") # MAC file path
@@ -918,4 +918,63 @@ ggplot(DBAD_M,aes(x=month2,y=x)) +
   geom_smooth(method="gam", formula=y~s(x,k=3), se = T, color="blue") +
   #geom_smooth(method=lm, se = T, color="red") +
   theme_bw()
+
+
+
+
+
+
+########### Total plot GLM Density #################
+
+DB68[,site2:=factor(site1,levels=c("A","AB","BI","E","BR","AD"))]
+
+SITES<-c("Anrumai","Abu","Bijante","Escadinhas","Bruce","Adonga")
+names(SITES)<-levels(factor(unique(DB68$site2)))
+
+#Merging months
+
+DATES1<-c("OCT","NOV","DEC","JAN","FEB","MAR","APR")
+names(DATES1)<-levels(factor(unique(DB68$month2)))
+
+##recode for winter variable
+DB68[,table(year,month)]
+
+DB68[,winter:=ifelse(year==2018&month<=4,"winter1",
+                     ifelse(year==2018&month>=10|year==2019&month<=4,"winter2",
+                            ifelse(year==2019&month>=10|year==2020&month<=4,"winter3",NA)))]
+
+
+DB68[,table(year,month,winter)]
+DB68[,table(winter)]
+str(DB68)
+
+#DB68[,winter:=factor(winter,levels=c("winter1","winter2","winter3"))]
+
+#### GLM
+ggplot(DB68, aes(y=dens,x=month2)) +
+  stat_summary(data=DB68,aes(y=dens,x=month2,shape=winter,col=winter),size=0.8,position=position_dodge(width = .7))+
+  geom_smooth(se=T,method="lm",col=1)+
+  # geom_smooth(data=db1[site2=="A"|site2=="AB"],aes(y=AFDWarea,x=month2),se=T, method="gam",formula=y~s(x,k=6))+
+  # geom_smooth(data=db1[site2=="BI"|site2=="BR"|site2=="E"],aes(y=AFDWarea,x=month2),se=T, method="gam",formula=y~s(x,k=7))+
+  facet_grid(reorder(class1,-dens) ~ site2,scales="free_y",labeller = labeller(site2=SITES))+
+  scale_x_continuous(breaks=c(1:7),labels=DATES1)+
+  theme_bw() +
+  labs(y="Density (ind.m-2)",x="Months")+
+  theme(axis.text.x = element_text(size=12),
+        axis.text.y = element_text(size=18),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_line(colour="grey60", linetype="dashed"),
+        axis.title = element_text(size=16,face="bold"))+
+  theme(strip.text = element_text(face="bold", size=rel(1.15)))+
+  theme(legend.text=element_text(size=16),legend.title = element_text(size=20))
+
+
+
+
+
+
+
+
+
 

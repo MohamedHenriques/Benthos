@@ -1008,12 +1008,32 @@ ggplot(db1, aes(x=AFDWarea,y=reorder(class2, AFDWarea),col=class2)) +
   theme(legend.text=element_text(size=16),legend.title = element_text(size=20))
 
 
-
+##GAM
 ggplot(db1, aes(y=AFDWarea,x=month2)) +
   stat_summary(size=0.8)+
   geom_smooth(data=db1[site=="AD"],aes(y=AFDWarea,x=month2),se=T, method="gam",formula=y~s(x,k=3))+
   geom_smooth(data=db1[site2=="A"|site2=="AB"],aes(y=AFDWarea,x=month2),se=T, method="gam",formula=y~s(x,k=6))+
   geom_smooth(data=db1[site2=="BI"|site2=="BR"|site2=="E"],aes(y=AFDWarea,x=month2),se=T, method="gam",formula=y~s(x,k=7))+
+  facet_grid(reorder(class2,-AFDWarea) ~ site2,scales="free_y",labeller = labeller(site2=SITES))+
+  scale_x_continuous(breaks=c(1:7),labels=DATES1)+
+  theme_bw() +
+  labs(y="AFDW (mg.m-2)",x="Months")+
+  theme(axis.text.x = element_text(size=12),
+        axis.text.y = element_text(size=18),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_line(colour="grey60", linetype="dashed"),
+        axis.title = element_text(size=16,face="bold"))+
+  theme(strip.text = element_text(face="bold", size=rel(1.15)))+
+  theme(legend.text=element_text(size=16),legend.title = element_text(size=20))
+
+
+#### GLM
+ggplot(db1, aes(y=AFDWarea,x=month2)) +
+  stat_summary(data=db1,aes(y=AFDWarea,x=month2,shape=factor(year)),size=0.8,position=position_dodge(width = .5))+
+  geom_smooth(se=T,method="lm")+
+  # geom_smooth(data=db1[site2=="A"|site2=="AB"],aes(y=AFDWarea,x=month2),se=T, method="gam",formula=y~s(x,k=6))+
+  # geom_smooth(data=db1[site2=="BI"|site2=="BR"|site2=="E"],aes(y=AFDWarea,x=month2),se=T, method="gam",formula=y~s(x,k=7))+
   facet_grid(reorder(class2,-AFDWarea) ~ site2,scales="free_y",labeller = labeller(site2=SITES))+
   scale_x_continuous(breaks=c(1:7),labels=DATES1)+
   theme_bw() +

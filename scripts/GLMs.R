@@ -115,7 +115,7 @@ AIC(m1,m1a)
 summary(m1a)
 
 ######## Bivalves
-dbb<-DB[class1=="Bivalvia"]
+dbb<-DB1[class1=="Bivalvia"]
 
 m2<-glm.nb(x~site*month2+offset(log(areacore)),data=dbb)
 summary(m2)
@@ -318,5 +318,54 @@ ggplot()+
 
 
 
+
+
+
+###plots
+
+########### Total plot GLM Density #################
+
+DB1[,site2:=factor(site1,levels=c("A","AB","BI","E","BR","AD"))]
+
+SITES<-c("Anrumai","Abu","Bijante","Escadinhas","Bruce","Adonga")
+names(SITES)<-levels(factor(unique(DB1$site2)))
+
+#Merging months
+
+DATES1<-c("OCT","NOV","DEC","JAN","FEB","MAR","APR")
+names(DATES1)<-levels(factor(unique(DB1$month2)))
+
+##recode for winter variable
+DB1[,table(year,month)]
+
+DB1[,winter:=ifelse(year==2018&month<=4,"winter1",
+                     ifelse(year==2018&month>=10|year==2019&month<=4,"winter2",
+                            ifelse(year==2019&month>=10|year==2020&month<=4,"winter3",NA)))]
+
+
+DB1[,table(year,month,winter)]
+DB1[,table(winter)]
+str(DB1)
+
+#DB1[,winter:=factor(winter,levels=c("winter1","winter2","winter3"))]
+
+#### GLM
+ggplot(DB1, aes(y=dens,x=month2)) +
+  stat_summary(data=DB1,aes(y=dens,x=month2,shape=winter,col=winter),size=0.8,position=position_dodge(width = .7))+
+  geom_smooth(se=T,method="lm",col=1)+
+  # geom_smooth(data=db1[site2=="A"|site2=="AB"],aes(y=AFDWarea,x=month2),se=T, method="gam",formula=y~s(x,k=6))+
+  # geom_smooth(data=db1[site2=="BI"|site2=="BR"|site2=="E"],aes(y=AFDWarea,x=month2),se=T, method="gam",formula=y~s(x,k=7))+
+  facet_grid(reorder(class1,-dens) ~ site2,scales="free_y",labeller = labeller(site2=SITES))+
+  scale_x_continuous(breaks=c(1:7),labels=DATES1)+
+  theme_bw() +
+  labs(y="Density (ind.m-2)",x="Months")+
+  theme(axis.text.x = element_text(size=12),
+        axis.text.y = element_text(size=18),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_line(colour="grey60", linetype="dashed"),
+        axis.title = element_text(size=16,face="bold"))+
+  theme(strip.text = element_text(face="bold", size=rel(1.15)))+
+  theme(legend.text=element_text(size=16),legend.title = element_text(size=20))
 
 

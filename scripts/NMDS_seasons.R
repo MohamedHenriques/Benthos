@@ -166,14 +166,17 @@ arrowCAP_Tot<-data.frame(fitCAP_Tot$vectors$arrows,R=fitCAP_Tot$vectors$r,P=fitC
 arrowCAP_Tot$FG <- rownames(arrowCAP_Tot)
 arrowarrowCAP_Tot.p<-arrowCAP_Tot[arrowCAP_Tot$P<=0.05&arrowCAP_Tot$R>=0.15,]
 
+#data.scoresCAP_Tot$period<-paste(data.scoresCAP_Tot$site,data.scoresCAP_Tot$season,sep="_")
+
 ##Site
 PP_CAP_site<-ggplot(data.scoresCAP_Tot,aes(x=LD1,y=LD2))+
-  geom_point(size=2,aes(colour=site))+
+  #geom_point(size=2,aes(colour=site,shape=factor(season)))+
   #geom_text(aes(label=month),size=7)+
-  labs(x="LD1",y="LD2",colour="Site",fill="Site")+
-  stat_ellipse(size=2,type="t",aes(group=site,colour=site,fill=site),level=.6,geom="polygon",alpha=.2)+
-  scale_colour_manual(values=p)+
-  scale_fill_manual(values=p)+
+  labs(x="LD1",y="LD2")+
+  stat_ellipse(size=2,type="t",aes(group=paste(site,season),colour=site,linetype=season,fill=site),level=.6,geom="polygon",alpha=.1)+
+  scale_fill_manual(values=p,name="Site")+
+  scale_linetype_manual(values =c("solid","longdash","dotted"),name="Period",labels=c("End of wet","Early dry","Late dry"))+
+  scale_colour_manual(values=p,name="Site")+
   ggtitle("Canonical Discriminant per site")+
   theme_bw()
 PP_CAP_site+
